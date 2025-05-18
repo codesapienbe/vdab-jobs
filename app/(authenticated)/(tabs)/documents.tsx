@@ -1,11 +1,12 @@
 import { AntDesign, Feather, Ionicons, MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import * as DocumentPicker from 'expo-document-picker';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -53,17 +54,53 @@ const formatDate = (dateString: string): string => {
 const getDocumentIcon = (type: DocumentType, size: number = 24, color: string = '#666') => {
   switch (type) {
     case 'pdf':
-      return <AntDesign name="pdffile1" size={size} color="#E53935" />;
+      return <AntDesign name="pdffile1" size={size} color={color} />;
     case 'markdown':
-      return <MaterialCommunityIcons name="language-markdown" size={size} color="#0288D1" />;
+      return <MaterialCommunityIcons name="language-markdown" size={size} color={color} />;
     case 'csv':
-      return <MaterialIcons name="grid-on" size={size} color="#388E3C" />;
+      return <MaterialIcons name="grid-on" size={size} color={color} />;
     case 'text':
-      return <MaterialIcons name="text-snippet" size={size} color="#616161" />;
+      return <MaterialIcons name="text-snippet" size={size} color={color} />;
     case 'image':
-      return <MaterialIcons name="image" size={size} color="#7B1FA2" />;
+      return <MaterialIcons name="image" size={size} color={color} />;
     default:
-      return <MaterialIcons name="insert-drive-file" size={size} color="#FFA000" />;
+      return <MaterialIcons name="insert-drive-file" size={size} color={color} />;
+  }
+};
+
+// Helper to get readable document type name
+const getDocumentTypeName = (type: DocumentType): string => {
+  switch (type) {
+    case 'pdf':
+      return 'PDF Document';
+    case 'markdown':
+      return 'Markdown';
+    case 'csv':
+      return 'Spreadsheet';
+    case 'text':
+      return 'Text Document';
+    case 'image':
+      return 'Image';
+    default:
+      return 'Document';
+  }
+};
+
+// Helper to get background color style for document type
+const getTypeColor = (type: DocumentType) => {
+  switch (type) {
+    case 'pdf':
+      return styles.pdfIconBg;
+    case 'markdown':
+      return styles.markdownIconBg;
+    case 'csv':
+      return styles.csvIconBg;
+    case 'text':
+      return styles.textIconBg;
+    case 'image':
+      return styles.imageIconBg;
+    default:
+      return styles.otherIconBg;
   }
 };
 
@@ -161,13 +198,28 @@ export default function DocumentsScreen() {
   const [documentName, setDocumentName] = useState('');
   const [documentDescription, setDocumentDescription] = useState('');
   const [documentTags, setDocumentTags] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<DocumentType | 'all'>('all');
   
-  // Filter documents based on search query
-  const filteredDocuments = documents.filter(doc => 
-    doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    doc.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
-  );
+  // Filter documents based on search query and selected category
+  const filteredDocuments = documents.filter(doc => {
+    const matchesQuery = 
+      doc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      doc.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (doc.tags && doc.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())));
+    
+    const matchesCategory = selectedCategory === 'all' || doc.type === selectedCategory;
+    
+    return matchesQuery && matchesCategory;
+  });
+  
+  // Calculate document counts by type
+  const documentCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: documents.length };
+    documents.forEach(doc => {
+      counts[doc.type] = (counts[doc.type] || 0) + 1;
+    });
+    return counts;
+  }, [documents]);
   
   // Handle document selection for viewing
   const handleViewDocument = (document: Document) => {
@@ -310,17 +362,27 @@ export default function DocumentsScreen() {
           style={styles.documentInfo}
           onPress={() => handleViewDocument(item)}
         >
-          <View style={styles.documentIconContainer}>
-            {getDocumentIcon(item.type, 32)}
+          <View style={[styles.documentIconContainer, getTypeColor(item.type)]}>
+            {getDocumentIcon(item.type, 28, '#fff')}
           </View>
           
           <View style={styles.documentDetails}>
-            <Text style={styles.documentName} numberOfLines={1}>{item.name}</Text>
-            <Text style={styles.documentDescription} numberOfLines={1}>{item.description}</Text>
+            <View style={styles.documentHeaderRow}>
+              <Text style={styles.documentName} numberOfLines={1}>{item.name}</Text>
+              <Text style={styles.documentTypeLabel}>{getDocumentTypeName(item.type)}</Text>
+            </View>
+            
+            <Text style={styles.documentDescription} numberOfLines={2}>{item.description}</Text>
             
             <View style={styles.documentMeta}>
-              <Text style={styles.documentSize}>{getFileSizeString(item.size)}</Text>
-              <Text style={styles.documentDate}>Modified: {formatDate(item.dateModified)}</Text>
+              <View style={styles.metaItem}>
+                <Ionicons name="time-outline" size={12} color="#888" style={styles.metaIcon} />
+                <Text style={styles.metaText}>{formatDate(item.dateModified)}</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <MaterialIcons name="file-copy" size={12} color="#888" style={styles.metaIcon} />
+                <Text style={styles.metaText}>{getFileSizeString(item.size)}</Text>
+              </View>
             </View>
             
             {item.tags && item.tags.length > 0 && (
@@ -340,28 +402,32 @@ export default function DocumentsScreen() {
             style={styles.actionButton}
             onPress={() => handleViewDocument(item)}
           >
-            <Feather name="eye" size={18} color="#666" />
+            <Feather name="eye" size={18} color="#007AFF" />
+            <Text style={styles.actionText}>View</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleEditDocument(item)}
           >
-            <Feather name="edit-2" size={18} color="#666" />
+            <Feather name="edit-2" size={18} color="#FF9500" />
+            <Text style={styles.actionText}>Edit</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleShareDocument(item)}
           >
-            <Feather name="share-2" size={18} color="#666" />
+            <Feather name="share-2" size={18} color="#34C759" />
+            <Text style={styles.actionText}>Share</Text>
           </TouchableOpacity>
           
           <TouchableOpacity
             style={styles.actionButton}
             onPress={() => handleDeleteDocument(item)}
           >
-            <Feather name="trash-2" size={18} color="#666" />
+            <Feather name="trash-2" size={18} color="#FF3B30" />
+            <Text style={styles.actionText}>Delete</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -376,38 +442,108 @@ export default function DocumentsScreen() {
       case 'pdf':
         // In a real app, you'd use a PDF viewer
         return (
-          <WebView
-            style={styles.webView}
-            source={{ html: selectedDocument.content || '<html><body><h1>PDF Viewer</h1><p>No content available.</p></body></html>' }}
-          />
+          <View style={styles.documentViewerContent}>
+            <WebView
+              style={styles.webView}
+              source={{ html: selectedDocument.content || '<html><body><h1>PDF Viewer</h1><p>No content available.</p></body></html>' }}
+            />
+            
+            <View style={styles.documentViewerFooter}>
+              <View style={styles.documentMetaInfo}>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Modified: {formatDate(selectedDocument.dateModified)}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <MaterialIcons name="file-copy" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Size: {getFileSizeString(selectedDocument.size)}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.documentViewerActions}>
+                <TouchableOpacity style={styles.viewerActionButton}>
+                  <Ionicons name="download-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Download</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.viewerActionButton}>
+                  <Ionicons name="print-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Print</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.viewerActionButton}
+                  onPress={() => selectedDocument && handleShareDocument(selectedDocument)}
+                >
+                  <Ionicons name="share-social-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Share</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         );
       
       case 'markdown':
         // Simple markdown rendering (in a real app, use a proper markdown renderer)
         return (
-          <WebView
-            style={styles.webView}
-            source={{ 
-              html: `
-                <html>
-                  <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; line-height: 1.6; }
-                      h1, h2, h3 { color: #333; }
-                      code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
-                      pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
-                      ul, ol { padding-left: 25px; }
-                      blockquote { border-left: 4px solid #ddd; margin-left: 0; padding-left: 15px; color: #666; }
-                    </style>
-                  </head>
-                  <body>
-                    <div id="content">${selectedDocument.content?.replace(/\n/g, '<br>') || 'No content available.'}</div>
-                  </body>
-                </html>
-              `
-            }}
-          />
+          <View style={styles.documentViewerContent}>
+            <WebView
+              style={styles.webView}
+              source={{ 
+                html: `
+                  <html>
+                    <head>
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; line-height: 1.6; }
+                        h1, h2, h3 { color: #333; }
+                        code { background: #f5f5f5; padding: 2px 5px; border-radius: 3px; }
+                        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; overflow-x: auto; }
+                        ul, ol { padding-left: 25px; }
+                        blockquote { border-left: 4px solid #ddd; margin-left: 0; padding-left: 15px; color: #666; }
+                      </style>
+                    </head>
+                    <body>
+                      <div id="content">${selectedDocument.content?.replace(/\n/g, '<br>') || 'No content available.'}</div>
+                    </body>
+                  </html>
+                `
+              }}
+            />
+            
+            <View style={styles.documentViewerFooter}>
+              <View style={styles.documentMetaInfo}>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Modified: {formatDate(selectedDocument.dateModified)}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <MaterialIcons name="file-copy" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Size: {getFileSizeString(selectedDocument.size)}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.documentViewerActions}>
+                <TouchableOpacity style={styles.viewerActionButton}>
+                  <Ionicons name="download-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Download</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.viewerActionButton}>
+                  <Ionicons name="create-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Edit</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.viewerActionButton}
+                  onPress={() => selectedDocument && handleShareDocument(selectedDocument)}
+                >
+                  <Ionicons name="share-social-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Share</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         );
       
       case 'csv':
@@ -421,50 +557,104 @@ export default function DocumentsScreen() {
         const data = rows.slice(1);
         
         return (
-          <WebView
-            style={styles.webView}
-            source={{ 
-              html: `
-                <html>
-                  <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 10px; }
-                      table { border-collapse: collapse; width: 100%; }
-                      th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-                      th { background-color: #f2f2f2; position: sticky; top: 0; }
-                      tr:nth-child(even) { background-color: #f9f9f9; }
-                    </style>
-                  </head>
-                  <body>
-                    <table>
-                      <thead>
-                        <tr>
-                          ${headers.map(h => `<th>${h}</th>`).join('')}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        ${data.map(row => 
-                          `<tr>${row.split(',').map(cell => `<td>${cell}</td>`).join('')}</tr>`
-                        ).join('')}
-                      </tbody>
-                    </table>
-                  </body>
-                </html>
-              `
-            }}
-          />
+          <View style={styles.documentViewerContent}>
+            <WebView
+              style={styles.webView}
+              source={{ 
+                html: `
+                  <html>
+                    <head>
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <style>
+                        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 10px; }
+                        table { border-collapse: collapse; width: 100%; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; position: sticky; top: 0; }
+                        tr:nth-child(even) { background-color: #f9f9f9; }
+                      </style>
+                    </head>
+                    <body>
+                      <table>
+                        <thead>
+                          <tr>
+                            ${headers.map(h => `<th>${h}</th>`).join('')}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          ${data.map(row => 
+                            `<tr>${row.split(',').map(cell => `<td>${cell}</td>`).join('')}</tr>`
+                          ).join('')}
+                        </tbody>
+                      </table>
+                    </body>
+                  </html>
+                `
+              }}
+            />
+            
+            <View style={styles.documentViewerFooter}>
+              <View style={styles.documentMetaInfo}>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Modified: {formatDate(selectedDocument.dateModified)}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <MaterialIcons name="file-copy" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Size: {getFileSizeString(selectedDocument.size)}</Text>
+                </View>
+              </View>
+              
+              <View style={styles.documentViewerActions}>
+                <TouchableOpacity style={styles.viewerActionButton}>
+                  <Ionicons name="download-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Download</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.viewerActionButton}>
+                  <Ionicons name="analytics-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Analyze</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={styles.viewerActionButton}
+                  onPress={() => selectedDocument && handleShareDocument(selectedDocument)}
+                >
+                  <Ionicons name="share-social-outline" size={22} color="#008D97" />
+                  <Text style={styles.viewerActionText}>Share</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
         );
       
       default:
         return (
-          <View style={styles.previewContainer}>
-            <View style={styles.previewIcon}>
-              {getDocumentIcon(selectedDocument.type, 64, '#008D97')}
+          <View style={styles.documentViewerContent}>
+            <View style={styles.previewContainer}>
+              <View style={styles.previewIcon}>
+                {getDocumentIcon(selectedDocument.type, 64, '#008D97')}
+              </View>
+              <Text style={styles.previewText}>
+                Preview not available for this document type.
+              </Text>
+              <TouchableOpacity style={styles.previewDownloadButton}>
+                <Ionicons name="download-outline" size={20} color="#fff" />
+                <Text style={styles.previewDownloadText}>Download File</Text>
+              </TouchableOpacity>
             </View>
-            <Text style={styles.previewText}>
-              Preview not available for this document type.
-            </Text>
+            
+            <View style={styles.documentViewerFooter}>
+              <View style={styles.documentMetaInfo}>
+                <View style={styles.metaItem}>
+                  <Ionicons name="time-outline" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Modified: {formatDate(selectedDocument.dateModified)}</Text>
+                </View>
+                <View style={styles.metaItem}>
+                  <MaterialIcons name="file-copy" size={14} color="#666" style={styles.metaIcon} />
+                  <Text style={styles.metaText}>Size: {getFileSizeString(selectedDocument.size)}</Text>
+                </View>
+              </View>
+            </View>
           </View>
         );
     }
@@ -473,23 +663,12 @@ export default function DocumentsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.content}>
-        {/* Header with search and add button */}
-        <View style={styles.header}>
-          <View style={styles.searchContainer}>
-            <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search documents..."
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-            />
-            {searchQuery ? (
-              <TouchableOpacity onPress={() => setSearchQuery('')}>
-                <Ionicons name="close-circle" size={20} color="#999" />
-              </TouchableOpacity>
-            ) : null}
+        {/* Page Header */}
+        <View style={styles.pageHeader}>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>My Documents</Text>
+            <Text style={styles.headerSubtitle}>{documents.length} total documents</Text>
           </View>
-          
           <TouchableOpacity 
             style={styles.addButton}
             onPress={handleAddDocument}
@@ -498,9 +677,176 @@ export default function DocumentsScreen() {
             {loading ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Ionicons name="add" size={24} color="#fff" />
+              <>
+                <Ionicons name="add" size={20} color="#fff" />
+                <Text style={styles.addButtonText}>Upload</Text>
+              </>
             )}
           </TouchableOpacity>
+        </View>
+        
+        {/* Search and Filter Bar */}
+        <View style={styles.searchContainer}>
+          <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search documents by name, description or tags..."
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={20} color="#999" />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+        
+        {/* Category Filters */}
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesContainer}
+        >
+          <TouchableOpacity 
+            style={[
+              styles.categoryButton, 
+              selectedCategory === 'all' && styles.categoryButtonActive
+            ]}
+            onPress={() => setSelectedCategory('all')}
+          >
+            <Ionicons 
+              name="layers-outline" 
+              size={16} 
+              color={selectedCategory === 'all' ? '#fff' : '#666'} 
+            />
+            <Text 
+              style={[
+                styles.categoryText, 
+                selectedCategory === 'all' && styles.categoryTextActive
+              ]}
+            >
+              All ({documentCounts.all || 0})
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[
+              styles.categoryButton, 
+              selectedCategory === 'pdf' && styles.pdfButtonActive
+            ]}
+            onPress={() => setSelectedCategory('pdf')}
+          >
+            <AntDesign 
+              name="pdffile1" 
+              size={16} 
+              color={selectedCategory === 'pdf' ? '#fff' : '#E53935'} 
+            />
+            <Text 
+              style={[
+                styles.categoryText, 
+                selectedCategory === 'pdf' && styles.categoryTextActive
+              ]}
+            >
+              PDFs ({documentCounts.pdf || 0})
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[
+              styles.categoryButton, 
+              selectedCategory === 'markdown' && styles.markdownButtonActive
+            ]}
+            onPress={() => setSelectedCategory('markdown')}
+          >
+            <MaterialCommunityIcons 
+              name="language-markdown" 
+              size={16} 
+              color={selectedCategory === 'markdown' ? '#fff' : '#0288D1'} 
+            />
+            <Text 
+              style={[
+                styles.categoryText, 
+                selectedCategory === 'markdown' && styles.categoryTextActive
+              ]}
+            >
+              Markdown ({documentCounts.markdown || 0})
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[
+              styles.categoryButton, 
+              selectedCategory === 'csv' && styles.csvButtonActive
+            ]}
+            onPress={() => setSelectedCategory('csv')}
+          >
+            <MaterialIcons 
+              name="grid-on" 
+              size={16} 
+              color={selectedCategory === 'csv' ? '#fff' : '#388E3C'} 
+            />
+            <Text 
+              style={[
+                styles.categoryText, 
+                selectedCategory === 'csv' && styles.categoryTextActive
+              ]}
+            >
+              Spreadsheets ({documentCounts.csv || 0})
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[
+              styles.categoryButton, 
+              selectedCategory === 'text' && styles.textButtonActive
+            ]}
+            onPress={() => setSelectedCategory('text')}
+          >
+            <MaterialIcons 
+              name="text-snippet" 
+              size={16} 
+              color={selectedCategory === 'text' ? '#fff' : '#616161'} 
+            />
+            <Text 
+              style={[
+                styles.categoryText, 
+                selectedCategory === 'text' && styles.categoryTextActive
+              ]}
+            >
+              Text ({documentCounts.text || 0})
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[
+              styles.categoryButton, 
+              selectedCategory === 'image' && styles.imageButtonActive
+            ]}
+            onPress={() => setSelectedCategory('image')}
+          >
+            <MaterialIcons 
+              name="image" 
+              size={16} 
+              color={selectedCategory === 'image' ? '#fff' : '#7B1FA2'} 
+            />
+            <Text 
+              style={[
+                styles.categoryText, 
+                selectedCategory === 'image' && styles.categoryTextActive
+              ]}
+            >
+              Images ({documentCounts.image || 0})
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
+        
+        {/* Results count */}
+        <View style={styles.resultsHeader}>
+          <Text style={styles.resultsText}>
+            Found {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
+            {searchQuery ? ` for "${searchQuery}"` : ''}
+            {selectedCategory !== 'all' ? ` in ${getDocumentTypeName(selectedCategory as DocumentType).toLowerCase()}` : ''}
+          </Text>
         </View>
         
         {/* Documents list */}
@@ -515,9 +861,9 @@ export default function DocumentsScreen() {
               <Ionicons name="document-outline" size={48} color="#ccc" />
               <Text style={styles.emptyText}>No documents found</Text>
               <Text style={styles.emptySubtext}>
-                {searchQuery 
-                  ? `No results for "${searchQuery}"`
-                  : "Add documents by tapping the + button"}
+                {searchQuery || selectedCategory !== 'all'
+                  ? "Try adjusting your search or category filters"
+                  : "Add documents by tapping the Upload button"}
               </Text>
             </View>
           )}
@@ -639,13 +985,39 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  header: {
+  pageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 16,
   },
-  searchContainer: {
+  headerTitleContainer: {
     flex: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#666',
+  },
+  addButton: {
+    flexDirection: 'row',
+    width: 100,
+    height: 48,
+    backgroundColor: '#008D97',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#fff',
+    marginLeft: 4,
+  },
+  searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -654,6 +1026,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
     borderColor: '#E9ECEF',
+    marginBottom: 16,
   },
   searchIcon: {
     marginRight: 8,
@@ -663,56 +1036,130 @@ const styles = StyleSheet.create({
     height: '100%',
     fontSize: 16,
   },
-  addButton: {
-    width: 48,
-    height: 48,
-    backgroundColor: '#008D97',
-    borderRadius: 8,
-    marginLeft: 12,
-    justifyContent: 'center',
+  categoriesContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 8,
+    flexWrap: 'wrap',
+  },
+  categoryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+    backgroundColor: '#F5F7F9',
+  },
+  categoryButtonActive: {
+    backgroundColor: '#008D97',
+  },
+  pdfButtonActive: {
+    backgroundColor: '#E53935',
+  },
+  markdownButtonActive: {
+    backgroundColor: '#0288D1',
+  },
+  csvButtonActive: {
+    backgroundColor: '#388E3C',
+  },
+  textButtonActive: {
+    backgroundColor: '#616161',
+  },
+  imageButtonActive: {
+    backgroundColor: '#7B1FA2',
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#666',
+    marginLeft: 6,
+  },
+  categoryTextActive: {
+    color: '#fff',
+  },
+  resultsHeader: {
+    marginBottom: 12,
+  },
+  resultsText: {
+    fontSize: 14,
+    color: '#666',
   },
   documentsList: {
     paddingBottom: 16,
   },
   documentCard: {
     backgroundColor: '#fff',
-    borderRadius: 12,
-    marginBottom: 16,
+    borderRadius: 8,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.05,
     shadowRadius: 2,
-    elevation: 2,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
+    overflow: 'hidden',
   },
   documentInfo: {
     flexDirection: 'row',
     padding: 16,
   },
   documentIconContainer: {
-    width: 48,
-    height: 48,
+    width: 40,
+    height: 40,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
+    borderRadius: 4,
   },
   documentDetails: {
     flex: 1,
+  },
+  documentHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   documentName: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
-    marginBottom: 4,
+    flex: 1,
+    marginRight: 8,
+  },
+  documentTypeLabel: {
+    fontSize: 12,
+    color: '#666',
+    backgroundColor: '#F0F4F8',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 4,
+    overflow: 'hidden',
   },
   documentDescription: {
     fontSize: 14,
     color: '#666',
     marginBottom: 8,
+    lineHeight: 20,
   },
   documentMeta: {
     flexDirection: 'row',
     marginBottom: 8,
+  },
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  metaIcon: {
+    marginRight: 4,
+  },
+  metaText: {
+    fontSize: 12,
+    color: '#888',
   },
   documentSize: {
     fontSize: 12,
@@ -743,12 +1190,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: '#F0F0F0',
+    backgroundColor: '#FAFAFA',
   },
   actionButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  actionText: {
+    fontSize: 12,
+    marginTop: 4,
+    color: '#666',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -894,6 +1347,66 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   saveButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  pdfIconBg: {
+    backgroundColor: '#E53935',
+  },
+  markdownIconBg: {
+    backgroundColor: '#0288D1',
+  },
+  csvIconBg: {
+    backgroundColor: '#388E3C',
+  },
+  textIconBg: {
+    backgroundColor: '#616161',
+  },
+  imageIconBg: {
+    backgroundColor: '#7B1FA2',
+  },
+  otherIconBg: {
+    backgroundColor: '#FFA000',
+  },
+  documentViewerContent: {
+    flex: 1,
+  },
+  documentViewerFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E9ECEF',
+    backgroundColor: '#F8F9FA',
+  },
+  documentMetaInfo: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  documentViewerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  viewerActionButton: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: 8,
+    marginLeft: 16,
+  },
+  viewerActionText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  previewDownloadButton: {
+    backgroundColor: '#008D97',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  previewDownloadText: {
+    fontSize: 14,
     color: '#fff',
     fontWeight: '600',
   },
