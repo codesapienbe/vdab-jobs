@@ -1,50 +1,123 @@
-# Welcome to your Expo app 👋
+# VDAB Jobs - Unofficial Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application that integrates with the VDAB (Flemish Employment and Vocational Training Service) API to provide job search functionality.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Job Search**: Search for vacancies with text queries
+- **Filters**: Filter by job domain, location (postal code), and distance
+- **Sorting**: Sort results by relevance, date, or distance
+- **Vacancy Details**: View complete job details including requirements and application info
+- **Similar Vacancies**: Discover similar job opportunities
 
-   ```bash
-   npm install
-   ```
+## Technical Stack
 
-2. Start the app
+- **React Native**: Core framework
+- **Expo SDK 50+**: Development platform 
+- **TypeScript**: Type-safe code
+- **React Query**: Data fetching and state management
+- **Axios**: API client with certificate pinning
+- **React Navigation 7.x**: Stack navigation
+- **Expo SecureStore**: API key management
+- **Expo Router**: File-based routing
 
-   ```bash
-   npx expo start
-   ```
+## Getting Started
 
-In the output, you'll find options to open the app in a
+### Prerequisites
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- Node.js 18+
+- Expo CLI
+- iOS Simulator or Android Emulator (or physical device)
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Installation
 
-## Get a fresh project
-
-When you're ready, run:
-
+1. Clone the repository
 ```bash
-npm run reset-project
+git clone https://github.com/yourusername/vdab-jobs.git
+cd vdab-jobs
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+2. Install dependencies
+```bash
+npm install
+```
 
-## Learn more
+3. Create a `.env` file in the root directory with your API key
+```
+EXPO_PUBLIC_VDAB_API_KEY=your_api_key_here
+EXPO_PUBLIC_VDAB_BASE_URL=https://api.vdab.be/openservices
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+4. Start the development server
+```bash
+npm start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+5. Run on device or simulator
+```bash
+npm run ios
+# or
+npm run android
+```
 
-## Join the community
+## Environment Setup
 
-Join our community of developers creating universal apps.
+- Set up your API key in the project's `.env` file
+- Configure environment variables in the Expo dashboard for production
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## Project Structure
+
+```
+├── app/                  # Expo Router app directory 
+│   ├── (tabs)/           # Tab navigator screens
+│   ├── vacancy/          # Vacancy detail screens
+│   └── _layout.tsx       # Root layout with providers
+├── components/           # Reusable components
+├── constants/            # Constants and configuration
+├── hooks/                # Custom React hooks
+├── services/             # API services and types
+│   ├── api/              # API implementations
+│   └── types/            # TypeScript interfaces
+└── assets/               # Static assets
+```
+
+## Build and Deployment
+
+This project uses EAS (Expo Application Services) for builds and deployments.
+
+### Development Build
+```bash
+eas build --profile development --platform ios
+```
+
+### Production Build
+```bash
+eas build --profile production --platform all
+```
+
+### Submit to App Stores
+```bash
+eas submit --platform ios
+eas submit --platform android
+```
+
+## API Documentation
+
+This application uses the VDAB Open Services API. For detailed documentation, visit:
+[VDAB Developer Portal](https://developer.vdab.be/openservices/product)
+
+## Security Features
+
+- Certificate pinning for API calls
+- Secure storage for API keys
+- Request rate limiting
+- Request validation middleware
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- VDAB for providing the public API
+- Expo team for their excellent development platform
