@@ -43,7 +43,7 @@ export default function LoginScreen() {
         <View style={styles.content}>
           <View style={styles.logoContainer}>
             <Image
-              source={require('../assets/images/vdab-logo.jpg')}
+              source={require('@/assets/images/partial-react-logo.png')}
               style={styles.logo}
               resizeMode="contain"
             />

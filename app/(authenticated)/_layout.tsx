@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Stack } from 'expo-router';
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 
@@ -9,13 +9,8 @@ export default function AuthenticatedLayout() {
   const { logout } = useAuth();
 
   return (
-    <Tabs
+    <Stack
       screenOptions={{
-        tabBarActiveTintColor: '#008D97', // Teal green
-        tabBarInactiveTintColor: '#666',
-        tabBarLabelStyle: styles.tabLabel,
-        tabBarStyle: styles.tabBar,
-        tabBarItemStyle: styles.tabItem,
         headerRight: () => (
           <TouchableOpacity onPress={logout} style={styles.logoutButton}>
             <Ionicons name="log-out-outline" size={24} color="#008D97" />
@@ -24,51 +19,23 @@ export default function AuthenticatedLayout() {
         headerStyle: styles.header,
         headerTitleStyle: styles.headerTitle,
       }}>
-      <Tabs.Screen
-        name="profile"
+      <Stack.Screen
+        name="(tabs)"
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="job-detail"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <Ionicons name="person" size={22} color={color} />,
-          headerTitle: 'My Profile',
+          headerShown: true,
+          headerTitle: 'Job Details',
+          presentation: 'card'
         }}
       />
-      <Tabs.Screen
-        name="assignments"
-        options={{
-          title: 'Assignments',
-          tabBarIcon: ({ color }) => <Ionicons name="briefcase" size={22} color={color} />,
-          headerTitle: 'My Assignments',
-        }}
-      />
-      <Tabs.Screen
-        name="documents"
-        options={{
-          title: 'Documents',
-          tabBarIcon: ({ color }) => <Ionicons name="document-attach" size={22} color={color} />,
-          headerTitle: 'Document Upload',
-        }}
-      />
-    </Tabs>
+    </Stack>
   );
 }
 
 const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: '#fff',
-    elevation: 2,
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-    height: 58,
-  },
-  tabLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  tabItem: {
-    paddingTop: 8,
-  },
   header: {
     backgroundColor: '#fff',
     elevation: 0,
