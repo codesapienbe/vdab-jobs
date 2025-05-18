@@ -5,6 +5,8 @@ import {
   ActivityIndicator,
   FlatList,
   Keyboard,
+  KeyboardAvoidingView,
+  Platform,
   RefreshControl,
   StyleSheet,
   Text,
@@ -14,11 +16,11 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import SkeletonPlaceholder from '../../components/SkeletonPlaceholder';
-import VacancyListItem from '../../components/VacancyListItem';
-import { useJobDomains } from '../../hooks/useJobDomains';
-import { useInfiniteVacancies } from '../../hooks/useVacancies';
-import { JobDomain, VacancySearchParams, VacancySearchResult } from '../../services/types/api.types';
+import SkeletonPlaceholder from '../components/SkeletonPlaceholder';
+import VacancyListItem from '../components/VacancyListItem';
+import { useJobDomains } from '../hooks/useJobDomains';
+import { useInfiniteVacancies } from '../hooks/useVacancies';
+import { JobDomain, VacancySearchParams, VacancySearchResult } from '../services/types/api.types';
 
 export default function SearchScreen() {
   // Search state
@@ -199,9 +201,65 @@ export default function SearchScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      >
+        {/* Main Content Area */}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.contentContainer}>
+            {isError ? (
+              renderErrorComponent()
+            ) : (
+              <FlatList
+                data={flattenedData}
+                renderItem={renderVacancyItem}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={styles.listContent}
+                ListEmptyComponent={renderEmptyComponent}
+                ListHeaderComponent={() => (
+                  <Text style={styles.resultsText}>
+                    {data?.pages[0]?.total
+                      ? `Found ${data.pages[0].total} vacancies`
+                      : 'Search for job vacancies'}
+                  </Text>
+                )}
+                ListFooterComponent={() => 
+                  isFetchingNextPage ? (
+                    <ActivityIndicator style={styles.loader} size="large" color="#3375BB" />
+                  ) : null
+                }
+                onEndReached={handleEndReached}
+                onEndReachedThreshold={0.3}
+                refreshControl={
+                  <RefreshControl
+                    refreshing={isRefetching || false}
+                    onRefresh={refetch}
+                    colors={['#3375BB']}
+                    tintColor="#3375BB"
+                  />
+                }
+                keyboardShouldPersistTaps="handled"
+              />
+            )}
+
+            {isLoading && !isRefetching && renderSkeletons()}
+          </View>
+        </TouchableWithoutFeedback>
+
+        {/* Filter Area (slides up from bottom) */}
+        {filtersVisible && (
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.filterOverlay}>
+              {renderFilters()}
+            </View>
+          </TouchableWithoutFeedback>
+        )}
+
+        {/* Bottom Search Bar (fixed at bottom) */}
+        <SafeAreaView edges={['bottom']} style={styles.bottomSafeArea}>
           <View style={styles.searchContainer}>
             <View style={styles.searchBar}>
               <TextInput
@@ -223,47 +281,8 @@ export default function SearchScreen() {
               <MaterialIcons name="tune" size={24} color="#3375BB" />
             </TouchableOpacity>
           </View>
-
-          {renderFilters()}
-
-          {isError ? (
-            renderErrorComponent()
-          ) : (
-            <FlatList
-              data={flattenedData}
-              renderItem={renderVacancyItem}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContent}
-              ListEmptyComponent={renderEmptyComponent}
-              ListHeaderComponent={() => (
-                <Text style={styles.resultsText}>
-                  {data?.pages[0]?.total
-                    ? `Found ${data.pages[0].total} vacancies`
-                    : 'Search for job vacancies'}
-                </Text>
-              )}
-              ListFooterComponent={() => 
-                isFetchingNextPage ? (
-                  <ActivityIndicator style={styles.loader} size="large" color="#3375BB" />
-                ) : null
-              }
-              onEndReached={handleEndReached}
-              onEndReachedThreshold={0.3}
-              keyboardShouldPersistTaps="handled"
-              refreshControl={
-                <RefreshControl
-                  refreshing={isRefetching || false}
-                  onRefresh={refetch}
-                  colors={['#3375BB']}
-                  tintColor="#3375BB"
-                />
-              }
-            />
-          )}
-
-          {isLoading && !isRefetching && renderSkeletons()}
-        </View>
-      </TouchableWithoutFeedback>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -277,10 +296,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F5F8FA',
   },
+  contentContainer: {
+    flex: 1,
+  },
+  bottomSafeArea: {
+    backgroundColor: '#fff',
+    borderTopWidth: 1,
+    borderTopColor: '#E9ECEF',
+  },
   searchContainer: {
     flexDirection: 'row',
-    padding: 16,
-    paddingBottom: 8,
+    padding: 12,
+    backgroundColor: '#fff',
   },
   searchBar: {
     flex: 1,
@@ -293,6 +320,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: '#E9ECEF',
   },
   searchInput: {
     flex: 1,
@@ -323,6 +352,13 @@ const styles = StyleSheet.create({
     elevation: 2,
     borderWidth: 1,
     borderColor: '#E9ECEF', // Cloud Gray from neutral palette
+  },
+  filterOverlay: {
+    position: 'absolute',
+    bottom: 72, // Above the search bar
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   filtersContainer: {
     backgroundColor: 'white',
@@ -366,14 +402,13 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 16,
-    paddingTop: 8,
     paddingBottom: 24,
     minHeight: '100%',
   },
   resultsText: {
     fontSize: 14,
     color: '#777',
-    marginBottom: 8,
+    marginVertical: 12,
   },
   loader: {
     marginVertical: 16,

@@ -8,13 +8,11 @@ export type ThemedTextProps = TextProps & {
   type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
 };
 
-export function ThemedText({
-  style,
-  lightColor,
-  darkColor,
-  type = 'default',
-  ...rest
-}: ThemedTextProps) {
+export function ThemedText(props: ThemedTextProps) {
+  // Handle the case where props might be undefined
+  if (!props) return null;
+  
+  const { style, lightColor, darkColor, type = 'default', ...rest } = props;
   const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
 
   return (

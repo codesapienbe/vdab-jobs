@@ -1,9 +1,9 @@
 import React, { createContext, useContext } from 'react';
-import { ThemeColors, useAppTheme } from '../hooks/useAppTheme';
+import { useAppTheme } from '../hooks/useAppTheme';
 
 // Define the context type
 interface ThemeContextType {
-  theme: ThemeColors;
+  theme: any; // Use a more flexible type to accommodate both theme objects
   isDark: boolean;
   getColor: (light: string, dark: string) => string;
   applyAlpha: (hexColor: string, alpha: number) => string;
@@ -13,7 +13,11 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 // Provider component
-export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const ThemeProvider = (props: { children: React.ReactNode }) => {
+  // Handle case where props might be undefined
+  if (!props) return null;
+  
+  const { children } = props;
   const themeValues = useAppTheme();
   
   return (
