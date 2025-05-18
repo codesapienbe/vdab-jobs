@@ -55,7 +55,6 @@ export default function VacancyDetailsScreen() {
       <Stack.Screen
         options={{
           title: 'Vacancy Details',
-          headerBackTitle: 'Back',
         }}
       />
       <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>

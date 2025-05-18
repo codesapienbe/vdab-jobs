@@ -83,14 +83,35 @@ export default function RootLayout() {
   }
 
   // Ensure we always have a valid theme value
-  const theme = colorScheme === 'dark' ? DarkTheme : DefaultTheme;
+  const customLightTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: '#008D97',
+    },
+  };
+
+  const customDarkTheme = {
+    ...DarkTheme,
+    colors: {
+      ...DarkTheme.colors,
+      primary: '#008D97',
+    },
+  };
+
+  const theme = colorScheme === 'dark' ? customDarkTheme : customLightTheme;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <ThemeProvider>
           <NavigationThemeProvider value={theme}>
-            <Stack screenOptions={{ headerShown: false }}>
+            <Stack 
+              screenOptions={{
+                headerShown: false,
+                headerBackTitle: '', // Remove back button text
+                headerTintColor: '#008D97', // Use teal color for back button
+              }}>
               <Stack.Screen name="index" />
               <Stack.Screen name="login" />
               <Stack.Screen name="(authenticated)" />

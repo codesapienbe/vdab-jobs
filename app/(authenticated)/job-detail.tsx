@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ export default function JobDetailScreen() {
   if (!job) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom']}>
+        <Stack.Screen options={{ headerBackTitle: '' }} />
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle" size={48} color="#ccc" />
           <Text style={styles.errorText}>Job not found</Text>
@@ -71,6 +72,12 @@ export default function JobDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      <Stack.Screen 
+        options={{ 
+          title: 'Job Details',
+          headerBackTitle: ''
+        }} 
+      />
       <ScrollView contentContainerStyle={styles.content}>
         {/* Job Header */}
         <View style={styles.header}>

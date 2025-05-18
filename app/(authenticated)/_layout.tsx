@@ -18,6 +18,8 @@ export default function AuthenticatedLayout() {
         ),
         headerStyle: styles.header,
         headerTitleStyle: styles.headerTitle,
+        headerBackTitle: '',
+        headerTintColor: '#008D97',
       }}>
       <Stack.Screen
         name="(tabs)"
@@ -28,7 +30,8 @@ export default function AuthenticatedLayout() {
         options={{
           headerShown: true,
           headerTitle: 'Job Details',
-          presentation: 'card'
+          presentation: 'card',
+          headerBackTitle: '',
         }}
       />
     </Stack>
