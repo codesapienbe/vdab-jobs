@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import React from 'react';
 import {
   Image,
@@ -12,6 +12,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/contexts/AuthContext';
+
+// Helper function to format date
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-GB', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+};
 
 export default function ProfileScreen() {
   const { user } = useAuth();
@@ -38,6 +48,58 @@ export default function ProfileScreen() {
           />
           <Text style={styles.name}>{user.name}</Text>
           <Text style={styles.username}>@{user.username}</Text>
+          
+          {/* Employment Status Badge */}
+          <View style={[styles.statusBadge, 
+            user.employmentStatus.status === 'employed' ? styles.employedBadge : 
+            user.employmentStatus.status === 'unemployed' ? styles.unemployedBadge :
+            user.employmentStatus.status === 'student' ? styles.studentBadge :
+            styles.freelancerBadge
+          ]}>
+            <Text style={styles.statusText}>
+              {user.employmentStatus.status.charAt(0).toUpperCase() + user.employmentStatus.status.slice(1)}
+            </Text>
+          </View>
+        </View>
+
+        {/* Employment Status */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Employment Status</Text>
+          
+          <View style={styles.statusDetail}>
+            <Text style={styles.statusLabel}>Current Status:</Text>
+            <Text style={styles.statusValue}>
+              {user.employmentStatus.status.charAt(0).toUpperCase() + user.employmentStatus.status.slice(1)}
+            </Text>
+          </View>
+          
+          {user.employmentStatus.details && (
+            <View style={styles.statusDetail}>
+              <Text style={styles.statusLabel}>Details:</Text>
+              <Text style={styles.statusValue}>{user.employmentStatus.details}</Text>
+            </View>
+          )}
+          
+          {user.employmentStatus.currentEmployer && (
+            <View style={styles.statusDetail}>
+              <Text style={styles.statusLabel}>Current Employer:</Text>
+              <Text style={styles.statusValue}>{user.employmentStatus.currentEmployer}</Text>
+            </View>
+          )}
+          
+          {user.employmentStatus.position && (
+            <View style={styles.statusDetail}>
+              <Text style={styles.statusLabel}>Position:</Text>
+              <Text style={styles.statusValue}>{user.employmentStatus.position}</Text>
+            </View>
+          )}
+          
+          {user.employmentStatus.employmentSince && (
+            <View style={styles.statusDetail}>
+              <Text style={styles.statusLabel}>Since:</Text>
+              <Text style={styles.statusValue}>{formatDate(user.employmentStatus.employmentSince)}</Text>
+            </View>
+          )}
         </View>
 
         {/* Contact Information */}
@@ -83,6 +145,128 @@ export default function ProfileScreen() {
               <Ionicons name="chevron-forward" size={18} color="#999" />
             </TouchableOpacity>
           )}
+          
+          {user.linkedIn && (
+            <TouchableOpacity 
+              style={styles.infoRow}
+              onPress={() => Linking.openURL(user.linkedIn || '')}
+            >
+              <FontAwesome name="linkedin-square" size={22} color="#0077B5" style={styles.infoIcon} />
+              <View>
+                <Text style={styles.infoLabel}>LinkedIn</Text>
+                <Text style={styles.infoValue}>View Profile</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color="#999" />
+            </TouchableOpacity>
+          )}
+        </View>
+        
+        {/* Skills */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Skills</Text>
+          
+          <View style={styles.skillsContainer}>
+            {user.skills.map((skill, index) => (
+              <View key={index} style={styles.skillItem}>
+                <Text style={styles.skillName}>{skill.name}</Text>
+                <View style={styles.skillLevelContainer}>
+                  <View 
+                    style={[
+                      styles.skillLevel, 
+                      { 
+                        width: skill.level === 'beginner' ? '25%' : 
+                               skill.level === 'intermediate' ? '50%' : 
+                               skill.level === 'advanced' ? '75%' : '100%' 
+                      }
+                    ]} 
+                  />
+                </View>
+                <Text style={styles.skillLevelText}>
+                  {skill.level.charAt(0).toUpperCase() + skill.level.slice(1)}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+        
+        {/* Education */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Education</Text>
+          
+          {user.education.map((edu, index) => (
+            <View key={index} style={[styles.educationItem, index < user.education.length - 1 && styles.withBottomBorder]}>
+              <View style={styles.educationHeader}>
+                <Text style={styles.degreeText}>
+                  {edu.degree} in {edu.field}
+                </Text>
+                <Text style={styles.graduationYear}>{edu.graduationYear}</Text>
+              </View>
+              <Text style={styles.institutionText}>{edu.institution}</Text>
+            </View>
+          ))}
+        </View>
+        
+        {/* Job Preferences */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Job Preferences</Text>
+          
+          {user.jobPreferences.desiredRole && (
+            <View style={styles.preferenceItem}>
+              <MaterialCommunityIcons name="briefcase-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
+              <Text style={styles.preferenceLabel}>Desired Role:</Text>
+              <Text style={styles.preferenceValue}>{user.jobPreferences.desiredRole}</Text>
+            </View>
+          )}
+          
+          {user.jobPreferences.desiredSalary && (
+            <View style={styles.preferenceItem}>
+              <MaterialCommunityIcons name="cash" size={20} color="#008D97" style={styles.preferenceIcon} />
+              <Text style={styles.preferenceLabel}>Desired Salary:</Text>
+              <Text style={styles.preferenceValue}>{user.jobPreferences.desiredSalary}</Text>
+            </View>
+          )}
+          
+          {user.jobPreferences.desiredLocation && (
+            <View style={styles.preferenceItem}>
+              <Ionicons name="location-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
+              <Text style={styles.preferenceLabel}>Preferred Location:</Text>
+              <Text style={styles.preferenceValue}>{user.jobPreferences.desiredLocation}</Text>
+            </View>
+          )}
+          
+          {user.jobPreferences.workType && (
+            <View style={styles.preferenceItem}>
+              <MaterialCommunityIcons name="office-building-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
+              <Text style={styles.preferenceLabel}>Work Type:</Text>
+              <Text style={styles.preferenceValue}>
+                {user.jobPreferences.workType.charAt(0).toUpperCase() + user.jobPreferences.workType.slice(1)}
+              </Text>
+            </View>
+          )}
+          
+          {user.jobPreferences.availableFrom && (
+            <View style={styles.preferenceItem}>
+              <Ionicons name="calendar-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
+              <Text style={styles.preferenceLabel}>Available From:</Text>
+              <Text style={styles.preferenceValue}>{formatDate(user.jobPreferences.availableFrom)}</Text>
+            </View>
+          )}
+        </View>
+        
+        {/* Languages */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Languages</Text>
+          
+          {user.languages.map((language, index) => (
+            <View key={index} style={[styles.languageItem, index < user.languages.length - 1 && styles.withBottomBorder]}>
+              <Text style={styles.languageName}>{language.name}</Text>
+              <View style={styles.levelBadge}>
+                <Text style={styles.levelBadgeText}>
+                  {language.level === 'native' ? 'Native' : language.level}
+                </Text>
+              </View>
+            </View>
+          ))}
         </View>
 
         {/* Account Settings */}
@@ -166,6 +350,29 @@ const styles = StyleSheet.create({
   username: {
     fontSize: 16,
     color: '#666',
+    marginBottom: 12,
+  },
+  statusBadge: {
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginTop: 8,
+  },
+  employedBadge: {
+    backgroundColor: '#DCFCE7',
+  },
+  unemployedBadge: {
+    backgroundColor: '#FFE2E5',
+  },
+  studentBadge: {
+    backgroundColor: '#E0F2FE',
+  },
+  freelancerBadge: {
+    backgroundColor: '#FEF9C3',
+  },
+  statusText: {
+    fontWeight: '600',
+    fontSize: 14,
   },
   section: {
     backgroundColor: '#fff',
@@ -183,6 +390,23 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 16,
+  },
+  statusDetail: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  statusLabel: {
+    fontSize: 14,
+    color: '#666',
+    flex: 1,
+  },
+  statusValue: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+    fontWeight: '500',
   },
   infoRow: {
     flexDirection: 'row',
@@ -203,6 +427,103 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     flex: 1,
+  },
+  skillsContainer: {
+    marginTop: 8,
+  },
+  skillItem: {
+    marginBottom: 14,
+  },
+  skillName: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#333',
+    marginBottom: 6,
+  },
+  skillLevelContainer: {
+    height: 8,
+    backgroundColor: '#E9ECEF',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  skillLevel: {
+    height: '100%',
+    backgroundColor: '#008D97',
+    borderRadius: 4,
+  },
+  skillLevelText: {
+    fontSize: 12,
+    color: '#666',
+    alignSelf: 'flex-end',
+  },
+  educationItem: {
+    paddingVertical: 12,
+  },
+  withBottomBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  educationHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  degreeText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  graduationYear: {
+    fontSize: 14,
+    color: '#666',
+  },
+  institutionText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  preferenceItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  preferenceIcon: {
+    marginRight: 12,
+  },
+  preferenceLabel: {
+    fontSize: 14,
+    color: '#666',
+    width: 140,
+  },
+  preferenceValue: {
+    fontSize: 14,
+    color: '#333',
+    flex: 1,
+    fontWeight: '500',
+  },
+  languageItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  languageName: {
+    fontSize: 16,
+    color: '#333',
+  },
+  levelBadge: {
+    backgroundColor: '#E9F5F6',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  levelBadgeText: {
+    color: '#008D97',
+    fontSize: 12,
+    fontWeight: '600',
   },
   settingRow: {
     flexDirection: 'row',

@@ -2,16 +2,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    Keyboard,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Keyboard,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -42,13 +42,15 @@ export default function LoginScreen() {
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.content}>
           <View style={styles.logoContainer}>
-            <Image
-              source={require('@/assets/images/partial-react-logo.png')}
-              style={styles.logo}
-              resizeMode="contain"
-            />
-            <Text style={styles.title}>VDAB Job Search</Text>
-            <Text style={styles.subtitle}>Find your next opportunity</Text>
+            <View style={styles.logoWrapper}>
+              <Image
+                source={require('@/assets/images/vdab-logo.jpg')}
+                style={styles.logo}
+                resizeMode="contain"
+              />
+            </View>
+            <Text style={styles.title}>Job Platform</Text>
+            <Text style={styles.subtitle}>This is an unoffical platform made by an ex-VDAB employee</Text>
           </View>
 
           <View style={styles.formContainer}>
@@ -114,11 +116,18 @@ const styles = StyleSheet.create({
   logoContainer: {
     alignItems: 'center',
     marginBottom: 40,
+    width: '100%',
+  },
+  logoWrapper: {
+    width: 200,
+    height: 200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
   },
   logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 20,
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontSize: 24,

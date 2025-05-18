@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import React, { createContext, ReactNode, useContext, useState } from 'react';
 
 // Define the User type
@@ -9,6 +10,36 @@ export interface User {
   phoneNumber?: string;
   address?: string;
   profilePicture?: string;
+  // New fields
+  employmentStatus: {
+    status: 'employed' | 'unemployed' | 'student' | 'freelancer';
+    details?: string;
+    currentEmployer?: string;
+    position?: string;
+    employmentSince?: string;
+  };
+  linkedIn?: string;
+  skills: Array<{
+    name: string;
+    level: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  }>;
+  education: Array<{
+    institution: string;
+    degree: string;
+    field: string;
+    graduationYear: string;
+  }>;
+  jobPreferences: {
+    desiredRole?: string;
+    desiredSalary?: string;
+    desiredLocation?: string;
+    workType?: 'full-time' | 'part-time' | 'freelance' | 'remote' | 'hybrid';
+    availableFrom?: string;
+  };
+  languages: Array<{
+    name: string;
+    level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'native';
+  }>;
 }
 
 // Define the AuthContext type
@@ -29,6 +60,49 @@ const dummyUser: User = {
   phoneNumber: '+32 123 456 789',
   address: 'Korenmarkt 1, 9000 Gent',
   profilePicture: 'https://randomuser.me/api/portraits/lego/1.jpg',
+  // New dummy data
+  employmentStatus: {
+    status: 'employed',
+    details: 'Working as a senior developer',
+    currentEmployer: 'TechSolutions NV',
+    position: 'Senior Full Stack Developer',
+    employmentSince: '2021-06-15',
+  },
+  linkedIn: 'https://linkedin.com/in/demouser',
+  skills: [
+    { name: 'JavaScript', level: 'expert' },
+    { name: 'React', level: 'advanced' },
+    { name: 'Node.js', level: 'advanced' },
+    { name: 'SQL', level: 'intermediate' },
+    { name: 'Docker', level: 'beginner' },
+  ],
+  education: [
+    {
+      institution: 'Ghent University',
+      degree: 'Master',
+      field: 'Computer Science',
+      graduationYear: '2019',
+    },
+    {
+      institution: 'Hogeschool Gent',
+      degree: 'Bachelor',
+      field: 'Applied Informatics',
+      graduationYear: '2017',
+    },
+  ],
+  jobPreferences: {
+    desiredRole: 'Tech Lead',
+    desiredSalary: '€65,000 - €75,000',
+    desiredLocation: 'Ghent or Remote',
+    workType: 'hybrid',
+    availableFrom: '2023-12-01',
+  },
+  languages: [
+    { name: 'Dutch', level: 'native' },
+    { name: 'English', level: 'C2' },
+    { name: 'French', level: 'B1' },
+    { name: 'German', level: 'A2' },
+  ],
 };
 
 // Create the context with default values
@@ -68,6 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Logout function
   const logout = () => {
     setUser(null);
+    // Redirect to login screen after logout
+    router.replace('/login');
   };
 
   return (
