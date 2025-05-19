@@ -73,6 +73,8 @@ export default function LoginScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                onSubmitEditing={handleLogin}
+                returnKeyType="go"
               />
               <TouchableOpacity
                 style={styles.eyeIcon}

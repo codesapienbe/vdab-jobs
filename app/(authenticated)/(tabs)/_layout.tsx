@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { Tabs } from 'expo-router';
+import { Tabs, router } from 'expo-router';
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
 
@@ -17,6 +17,15 @@ export default function TabLayout() {
         headerTitleStyle: styles.headerTitle,
         headerBackground: () => (
           <BlurView intensity={60} tint="light" style={StyleSheet.absoluteFill} />
+        ),
+        headerLeft: () => (
+          <TouchableOpacity 
+            onPress={() => router.push('/(authenticated)/chat')}
+            style={styles.chatButton}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="chatbubble-ellipses-outline" size={24} color={primary.tealGreen} />
+          </TouchableOpacity>
         ),
         headerRight: () => (
           <TouchableOpacity 
@@ -117,6 +126,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 18,
     letterSpacing: 0.5,
+  },
+  chatButton: {
+    marginLeft: 16,
+    backgroundColor: 'rgba(0, 141, 151, 0.08)',
+    padding: 10,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 141, 151, 0.1)',
   },
   logoutButton: {
     marginRight: 16,

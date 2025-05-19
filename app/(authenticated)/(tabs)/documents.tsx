@@ -5,6 +5,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Keyboard,
   Modal,
   ScrollView,
   StyleSheet,
@@ -199,6 +200,8 @@ export default function DocumentsScreen() {
   const [documentDescription, setDocumentDescription] = useState('');
   const [documentTags, setDocumentTags] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<DocumentType | 'all'>('all');
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [documentTypeFilter, setDocumentTypeFilter] = useState<DocumentType | null>(null);
   
   // Filter documents based on search query and selected category
   const filteredDocuments = documents.filter(doc => {
@@ -663,191 +666,199 @@ export default function DocumentsScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <View style={styles.content}>
-        {/* Page Header */}
-        <View style={styles.pageHeader}>
-          <View style={styles.headerTitleContainer}>
-            <Text style={styles.headerTitle}>My Documents</Text>
-            <Text style={styles.headerSubtitle}>{documents.length} total documents</Text>
-          </View>
-          <TouchableOpacity 
-            style={styles.addButton}
-            onPress={handleAddDocument}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="add" size={20} color="#fff" />
-                <Text style={styles.addButtonText}>Upload</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        </View>
-        
         {/* Search and Filter Bar */}
         <View style={styles.searchContainer}>
           <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search documents by name, description or tags..."
+            placeholder="Search documents..."
             value={searchQuery}
             onChangeText={setSearchQuery}
+            returnKeyType="search"
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
           {searchQuery ? (
             <TouchableOpacity onPress={() => setSearchQuery('')}>
               <Ionicons name="close-circle" size={20} color="#999" />
             </TouchableOpacity>
           ) : null}
+          <TouchableOpacity 
+            style={styles.filterButton}
+            onPress={() => setFilterModalVisible(true)}
+          >
+            <Ionicons name="filter" size={20} color={selectedCategory !== 'all' ? '#008D97' : '#666'} />
+          </TouchableOpacity>
         </View>
-        
-        {/* Category Filters */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-        >
-          <TouchableOpacity 
-            style={[
-              styles.categoryButton, 
-              selectedCategory === 'all' && styles.categoryButtonActive
-            ]}
-            onPress={() => setSelectedCategory('all')}
-          >
-            <Ionicons 
-              name="layers-outline" 
-              size={16} 
-              color={selectedCategory === 'all' ? '#fff' : '#666'} 
-            />
-            <Text 
-              style={[
-                styles.categoryText, 
-                selectedCategory === 'all' && styles.categoryTextActive
-              ]}
-            >
-              All ({documentCounts.all || 0})
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.categoryButton, 
-              selectedCategory === 'pdf' && styles.pdfButtonActive
-            ]}
-            onPress={() => setSelectedCategory('pdf')}
-          >
-            <AntDesign 
-              name="pdffile1" 
-              size={16} 
-              color={selectedCategory === 'pdf' ? '#fff' : '#E53935'} 
-            />
-            <Text 
-              style={[
-                styles.categoryText, 
-                selectedCategory === 'pdf' && styles.categoryTextActive
-              ]}
-            >
-              PDFs ({documentCounts.pdf || 0})
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.categoryButton, 
-              selectedCategory === 'markdown' && styles.markdownButtonActive
-            ]}
-            onPress={() => setSelectedCategory('markdown')}
-          >
-            <MaterialCommunityIcons 
-              name="language-markdown" 
-              size={16} 
-              color={selectedCategory === 'markdown' ? '#fff' : '#0288D1'} 
-            />
-            <Text 
-              style={[
-                styles.categoryText, 
-                selectedCategory === 'markdown' && styles.categoryTextActive
-              ]}
-            >
-              Markdown ({documentCounts.markdown || 0})
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.categoryButton, 
-              selectedCategory === 'csv' && styles.csvButtonActive
-            ]}
-            onPress={() => setSelectedCategory('csv')}
-          >
-            <MaterialIcons 
-              name="grid-on" 
-              size={16} 
-              color={selectedCategory === 'csv' ? '#fff' : '#388E3C'} 
-            />
-            <Text 
-              style={[
-                styles.categoryText, 
-                selectedCategory === 'csv' && styles.categoryTextActive
-              ]}
-            >
-              Spreadsheets ({documentCounts.csv || 0})
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.categoryButton, 
-              selectedCategory === 'text' && styles.textButtonActive
-            ]}
-            onPress={() => setSelectedCategory('text')}
-          >
-            <MaterialIcons 
-              name="text-snippet" 
-              size={16} 
-              color={selectedCategory === 'text' ? '#fff' : '#616161'} 
-            />
-            <Text 
-              style={[
-                styles.categoryText, 
-                selectedCategory === 'text' && styles.categoryTextActive
-              ]}
-            >
-              Text ({documentCounts.text || 0})
-            </Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[
-              styles.categoryButton, 
-              selectedCategory === 'image' && styles.imageButtonActive
-            ]}
-            onPress={() => setSelectedCategory('image')}
-          >
-            <MaterialIcons 
-              name="image" 
-              size={16} 
-              color={selectedCategory === 'image' ? '#fff' : '#7B1FA2'} 
-            />
-            <Text 
-              style={[
-                styles.categoryText, 
-                selectedCategory === 'image' && styles.categoryTextActive
-              ]}
-            >
-              Images ({documentCounts.image || 0})
-            </Text>
-          </TouchableOpacity>
-        </ScrollView>
-        
+
         {/* Results count */}
         <View style={styles.resultsHeader}>
           <Text style={styles.resultsText}>
-            Found {filteredDocuments.length} document{filteredDocuments.length !== 1 ? 's' : ''}
-            {searchQuery ? ` for "${searchQuery}"` : ''}
-            {selectedCategory !== 'all' ? ` in ${getDocumentTypeName(selectedCategory as DocumentType).toLowerCase()}` : ''}
+            Found {filteredDocuments.length} documents {searchQuery ? `for "${searchQuery}"` : ''}
+            {selectedCategory !== 'all' ? ` of type ${selectedCategory}` : ''}
           </Text>
         </View>
+        
+        {/* Filter Modal */}
+        <Modal
+          visible={filterModalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setFilterModalVisible(false)}
+        >
+          <View style={styles.filterModalContainer}>
+            <View style={styles.filterModalContent}>
+              <View style={styles.filterModalHeader}>
+                <Text style={styles.filterModalTitle}>Filter by Type</Text>
+                <TouchableOpacity 
+                  style={styles.closeButton}
+                  onPress={() => setFilterModalVisible(false)}
+                >
+                  <Ionicons name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              <ScrollView style={styles.filterOptions}>
+                <TouchableOpacity 
+                  style={[
+                    styles.filterOption,
+                    selectedCategory === 'all' && styles.filterOptionActive
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory('all');
+                    setFilterModalVisible(false);
+                  }}
+                >
+                  <Ionicons 
+                    name="layers-outline" 
+                    size={20} 
+                    color={selectedCategory === 'all' ? '#fff' : '#666'} 
+                  />
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedCategory === 'all' && styles.filterOptionTextActive
+                  ]}>
+                    All Documents ({documentCounts.all || 0})
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[
+                    styles.filterOption,
+                    selectedCategory === 'pdf' && styles.filterOptionActive
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory('pdf');
+                    setFilterModalVisible(false);
+                  }}
+                >
+                  <AntDesign 
+                    name="pdffile1" 
+                    size={20} 
+                    color={selectedCategory === 'pdf' ? '#fff' : '#E53935'} 
+                  />
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedCategory === 'pdf' && styles.filterOptionTextActive
+                  ]}>
+                    PDF Documents ({documentCounts.pdf || 0})
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[
+                    styles.filterOption,
+                    selectedCategory === 'markdown' && styles.filterOptionActive
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory('markdown');
+                    setFilterModalVisible(false);
+                  }}
+                >
+                  <MaterialCommunityIcons 
+                    name="language-markdown" 
+                    size={20} 
+                    color={selectedCategory === 'markdown' ? '#fff' : '#0288D1'} 
+                  />
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedCategory === 'markdown' && styles.filterOptionTextActive
+                  ]}>
+                    Markdown Files ({documentCounts.markdown || 0})
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[
+                    styles.filterOption,
+                    selectedCategory === 'csv' && styles.filterOptionActive
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory('csv');
+                    setFilterModalVisible(false);
+                  }}
+                >
+                  <MaterialIcons 
+                    name="grid-on" 
+                    size={20} 
+                    color={selectedCategory === 'csv' ? '#fff' : '#388E3C'} 
+                  />
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedCategory === 'csv' && styles.filterOptionTextActive
+                  ]}>
+                    Spreadsheets ({documentCounts.csv || 0})
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[
+                    styles.filterOption,
+                    selectedCategory === 'text' && styles.filterOptionActive
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory('text');
+                    setFilterModalVisible(false);
+                  }}
+                >
+                  <MaterialIcons 
+                    name="text-snippet" 
+                    size={20} 
+                    color={selectedCategory === 'text' ? '#fff' : '#616161'} 
+                  />
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedCategory === 'text' && styles.filterOptionTextActive
+                  ]}>
+                    Text Files ({documentCounts.text || 0})
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[
+                    styles.filterOption,
+                    selectedCategory === 'image' && styles.filterOptionActive
+                  ]}
+                  onPress={() => {
+                    setSelectedCategory('image');
+                    setFilterModalVisible(false);
+                  }}
+                >
+                  <MaterialIcons 
+                    name="image" 
+                    size={20} 
+                    color={selectedCategory === 'image' ? '#fff' : '#7B1FA2'} 
+                  />
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedCategory === 'image' && styles.filterOptionTextActive
+                  ]}>
+                    Images ({documentCounts.image || 0})
+                  </Text>
+                </TouchableOpacity>
+              </ScrollView>
+            </View>
+          </View>
+        </Modal>
         
         {/* Documents list */}
         <FlatList
@@ -856,18 +867,28 @@ export default function DocumentsScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.documentsList}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           ListEmptyComponent={() => (
             <View style={styles.emptyContainer}>
-              <Ionicons name="document-outline" size={48} color="#ccc" />
+              <Ionicons name="search-outline" size={48} color="#ccc" />
               <Text style={styles.emptyText}>No documents found</Text>
-              <Text style={styles.emptySubtext}>
-                {searchQuery || selectedCategory !== 'all'
-                  ? "Try adjusting your search or category filters"
-                  : "Add documents by tapping the Upload button"}
-              </Text>
+              <Text style={styles.emptySubtext}>Try adjusting your search criteria</Text>
             </View>
           )}
         />
+        
+        {/* Floating Action Button */}
+        <TouchableOpacity 
+          style={styles.fab}
+          onPress={handleAddDocument}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Ionicons name="add" size={24} color="#fff" />
+          )}
+        </TouchableOpacity>
         
         {/* Document viewer modal */}
         <Modal
@@ -985,38 +1006,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
   },
-  pageHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  headerTitleContainer: {
-    flex: 1,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
-  addButton: {
-    flexDirection: 'row',
-    width: 100,
-    height: 48,
-    backgroundColor: '#008D97',
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#fff',
-    marginLeft: 4,
-  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1036,47 +1025,57 @@ const styles = StyleSheet.create({
     height: '100%',
     fontSize: 16,
   },
-  categoriesContainer: {
+  filterButton: {
+    padding: 8,
+    marginLeft: 8,
+  },
+  filterModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  filterModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '80%',
+  },
+  filterModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E9ECEF',
+  },
+  filterModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  filterOptions: {
+    padding: 16,
+  },
+  filterOption: {
     flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
+    borderRadius: 8,
     marginBottom: 8,
-    flexWrap: 'wrap',
+    backgroundColor: '#F5F8FA',
   },
-  categoryButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
-    backgroundColor: '#F5F7F9',
-  },
-  categoryButtonActive: {
+  filterOptionActive: {
     backgroundColor: '#008D97',
   },
-  pdfButtonActive: {
-    backgroundColor: '#E53935',
-  },
-  markdownButtonActive: {
-    backgroundColor: '#0288D1',
-  },
-  csvButtonActive: {
-    backgroundColor: '#388E3C',
-  },
-  textButtonActive: {
-    backgroundColor: '#616161',
-  },
-  imageButtonActive: {
-    backgroundColor: '#7B1FA2',
-  },
-  categoryText: {
-    fontSize: 14,
-    fontWeight: '500',
+  filterOptionText: {
+    fontSize: 16,
     color: '#666',
-    marginLeft: 6,
+    marginLeft: 12,
   },
-  categoryTextActive: {
+  filterOptionTextActive: {
     color: '#fff',
   },
   resultsHeader: {
@@ -1409,5 +1408,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#fff',
     fontWeight: '600',
+  },
+  fab: {
+    position: 'absolute',
+    right: 16,
+    bottom: 16,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#008D97',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
   },
 }); 

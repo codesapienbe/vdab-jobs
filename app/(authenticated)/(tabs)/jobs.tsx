@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import {
     FlatList,
     Keyboard,
+    Modal,
     StyleSheet,
     Text,
     TextInput,
@@ -253,60 +254,84 @@ export default function JobsScreen() {
         <View style={styles.content}>
           {/* Search and Filter Bar */}
           <View style={styles.searchContainer}>
-            <View style={styles.searchBar}>
-              <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Search jobs, skills, companies..."
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                returnKeyType="search"
-                onSubmitEditing={() => Keyboard.dismiss()}
-              />
-              {searchQuery ? (
-                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                  <Ionicons name="close-circle" size={20} color="#999" />
-                </TouchableOpacity>
-              ) : null}
-            </View>
-            
-            <TouchableOpacity
+            <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search jobs, skills, companies..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              returnKeyType="search"
+              onSubmitEditing={() => Keyboard.dismiss()}
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={20} color="#999" />
+              </TouchableOpacity>
+            ) : null}
+            <TouchableOpacity 
               style={styles.filterButton}
-              onPress={() => setFilterVisible(!filterVisible)}>
-              <Ionicons name="filter" size={22} color="#008D97" />
+              onPress={() => setFilterVisible(true)}
+            >
+              <Ionicons name="filter" size={20} color={locationFilter ? '#008D97' : '#666'} />
             </TouchableOpacity>
           </View>
-          
-          {/* Filters */}
-          {filterVisible && (
-            <View style={styles.filtersContainer}>
-              <View style={styles.filterRow}>
-                <Ionicons name="location-outline" size={20} color="#666" style={styles.filterIcon} />
-                <TextInput
-                  style={styles.filterInput}
-                  placeholder="Filter by location"
-                  value={locationFilter}
-                  onChangeText={setLocationFilter}
-                  returnKeyType="search"
-                  onSubmitEditing={() => Keyboard.dismiss()}
-                />
+
+          {/* Filter Modal */}
+          <Modal
+            visible={filterVisible}
+            animationType="slide"
+            transparent={true}
+            onRequestClose={() => setFilterVisible(false)}
+          >
+            <View style={styles.filterModalContainer}>
+              <View style={styles.filterModalContent}>
+                <View style={styles.filterModalHeader}>
+                  <Text style={styles.filterModalTitle}>Filter by Location</Text>
+                  <TouchableOpacity 
+                    style={styles.closeButton}
+                    onPress={() => setFilterVisible(false)}
+                  >
+                    <Ionicons name="close" size={24} color="#666" />
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.filterOptions}>
+                  <View style={styles.filterInputContainer}>
+                    <Ionicons name="location-outline" size={20} color="#666" style={styles.filterIcon} />
+                    <TextInput
+                      style={styles.filterInput}
+                      placeholder="Enter city or region"
+                      value={locationFilter}
+                      onChangeText={setLocationFilter}
+                      returnKeyType="search"
+                      onSubmitEditing={() => {
+                        Keyboard.dismiss();
+                        setFilterVisible(false);
+                      }}
+                    />
+                  </View>
+
+                  <TouchableOpacity 
+                    style={styles.resetButton}
+                    onPress={() => {
+                      setLocationFilter('');
+                      setFilterVisible(false);
+                    }}
+                  >
+                    <Ionicons name="refresh" size={16} color="#fff" />
+                    <Text style={styles.resetButtonText}>Reset Filter</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              
-              <TouchableOpacity style={styles.resetButton} onPress={handleResetFilters}>
-                <Ionicons name="refresh" size={16} color="#fff" />
-                <Text style={styles.resetButtonText}>Reset Filters</Text>
-              </TouchableOpacity>
             </View>
-          )}
-          
+          </Modal>
+
           {/* Results count */}
           <View style={styles.resultsHeader}>
             <Text style={styles.resultsText}>
               Found {filteredJobs.length} jobs {searchQuery ? `for "${searchQuery}"` : ''}
+              {locationFilter ? ` in ${locationFilter}` : ''}
             </Text>
-            {locationFilter && (
-              <Text style={styles.locationFilterText}>in {locationFilter}</Text>
-            )}
           </View>
           
           {/* Job list */}
@@ -342,11 +367,6 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    marginBottom: 12,
-  },
-  searchBar: {
-    flex: 1,
-    flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 8,
@@ -354,6 +374,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderWidth: 1,
     borderColor: '#E9ECEF',
+    marginBottom: 16,
   },
   searchIcon: {
     marginRight: 8,
@@ -364,42 +385,61 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   filterButton: {
-    width: 48,
-    height: 48,
-    marginLeft: 12,
+    padding: 8,
+    marginLeft: 8,
+  },
+  filterModalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  filterModalContent: {
     backgroundColor: '#fff',
-    borderRadius: 8,
-    justifyContent: 'center',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: '80%',
+  },
+  filterModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
-  },
-  filtersContainer: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
     padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E9ECEF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E9ECEF',
   },
-  filterRow: {
+  filterModalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  filterOptions: {
+    padding: 16,
+  },
+  filterInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    backgroundColor: '#F5F8FA',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    height: 48,
+    marginBottom: 16,
   },
   filterIcon: {
     marginRight: 8,
   },
   filterInput: {
     flex: 1,
-    height: 40,
+    height: '100%',
     fontSize: 16,
   },
   resetButton: {
     flexDirection: 'row',
     backgroundColor: '#008D97',
     borderRadius: 8,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
@@ -415,14 +455,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   resultsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  locationFilterText: {
     fontSize: 14,
     color: '#666',
-    marginTop: 4,
   },
   jobsList: {
     paddingBottom: 16,
