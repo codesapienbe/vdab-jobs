@@ -2,7 +2,7 @@ import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -55,6 +55,8 @@ export default function SettingsScreen() {
   
   const [isResettingCache, setIsResettingCache] = useState(false);
   const [localFontSize, setLocalFontSize] = useState(settings.fontSize);
+  const [hasChanges, setHasChanges] = useState(false);
+  const saveCallbackRef = useRef<(() => void) | null>(null);
   
   // Display the actual theme based on system or user preference
   const effectiveTheme = getEffectiveTheme();
@@ -62,12 +64,14 @@ export default function SettingsScreen() {
   // Handle theme change
   const handleThemeChange = async (newTheme: 'light' | 'dark' | 'system') => {
     await updateTheme(newTheme);
+    setHasChanges(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
   
   // Handle language change
   const handleLanguageChange = async (value: string) => {
     await updateLanguage(value);
+    setHasChanges(true);
   };
   
   // Handle font size change
@@ -75,12 +79,14 @@ export default function SettingsScreen() {
     const newSize = Math.min(Math.max(MIN_FONT_SIZE, Math.round(value)), MAX_FONT_SIZE);
     setLocalFontSize(newSize);
     await updateFontSize(newSize);
+    setHasChanges(true);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
   
   // Handle currency change
   const handleCurrencyChange = async (value: string) => {
     await updateCurrency(value);
+    setHasChanges(true);
   };
   
   // Font size buttons for increasing/decreasing size
@@ -129,6 +135,35 @@ export default function SettingsScreen() {
       ]
     );
   };
+  
+  // Set up save callback
+  useEffect(() => {
+    const handleSave = () => {
+      if (hasChanges) {
+        // Show success message
+        Alert.alert(
+          t('success'),
+          t('settingsSaved'),
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setHasChanges(false);
+                router.back();
+              }
+            }
+          ]
+        );
+      } else {
+        router.back();
+      }
+    };
+
+    saveCallbackRef.current = handleSave;
+    return () => {
+      saveCallbackRef.current = null;
+    };
+  }, [hasChanges, router, t]);
   
   if (isLoading || isResettingCache) {
     return (
@@ -223,18 +258,6 @@ export default function SettingsScreen() {
   
   return (
     <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      {/* Header with back button */}
-      <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={24} color={primary.tealGreen} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('settings')}</Text>
-        <View style={styles.headerRight} />
-      </View>
-
       <ScrollView contentContainerStyle={styles.content}>
         {/* Appearance Settings */}
         <View style={styles.section}>
@@ -445,30 +468,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F8FA',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E9ECEF',
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: primary.tealGreen,
-  },
-  headerRight: {
-    width: 40,
   },
   content: {
     padding: 16,

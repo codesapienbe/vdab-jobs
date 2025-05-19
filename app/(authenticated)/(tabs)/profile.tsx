@@ -1,39 +1,59 @@
-import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Image,
-  Linking,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CollapsibleSection } from '@/components/CollapsibleSection';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTranslation } from '@/utils/i18n';
 
 // Helper function to format date
 const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-GB', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return new Date(dateString).toLocaleDateString();
+};
+
+// Helper function to get random user profile picture
+const getRandomUserProfilePicture = async () => {
+  try {
+    const response = await fetch('https://randomuser.me/api/');
+    const data = await response.json();
+    return data.results[0].picture.large;
+  } catch (error) {
+    console.error('Error fetching random user picture:', error);
+    return 'https://randomuser.me/api/portraits/lego/1.jpg'; // Fallback image
+  }
 };
 
 export default function ProfileScreen() {
   const { user } = useAuth();
   const router = useRouter();
+  const { t } = useTranslation();
+  const [profilePicture, setProfilePicture] = useState<string | undefined>(user?.profilePicture);
+
+  useEffect(() => {
+    const fetchProfilePicture = async () => {
+      if (!user?.profilePicture) {
+        const randomPicture = await getRandomUserProfilePicture();
+        setProfilePicture(randomPicture);
+      }
+    };
+    fetchProfilePicture();
+  }, [user?.profilePicture]);
 
   if (!user) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
           <Ionicons name="person-outline" size={48} color="#ccc" />
-          <Text style={styles.errorText}>User not found</Text>
+          <Text style={styles.errorText}>{t('userNotFound')}</Text>
         </View>
       </SafeAreaView>
     );
@@ -45,7 +65,7 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Image
-            source={{ uri: user.profilePicture || 'https://randomuser.me/api/portraits/lego/1.jpg' }}
+            source={{ uri: profilePicture }}
             style={styles.profileImage}
           />
           <Text style={styles.name}>{user.name}</Text>
@@ -65,222 +85,171 @@ export default function ProfileScreen() {
         </View>
 
         {/* Employment Status */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Employment Status</Text>
-          
-          <View style={styles.statusDetail}>
-            <Text style={styles.statusLabel}>Current Status:</Text>
-            <Text style={styles.statusValue}>
-              {user.employmentStatus.status.charAt(0).toUpperCase() + user.employmentStatus.status.slice(1)}
-            </Text>
+        <CollapsibleSection title={t('employmentStatus')} initiallyExpanded>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('currentStatus')}</Text>
+            <Text style={styles.sectionText}>{user.employmentStatus.status}</Text>
+            {user.employmentStatus.details && (
+              <Text style={styles.sectionText}>{user.employmentStatus.details}</Text>
+            )}
+            {user.employmentStatus.currentEmployer && (
+              <>
+                <Text style={styles.sectionTitle}>{t('currentEmployer')}</Text>
+                <Text style={styles.sectionText}>{user.employmentStatus.currentEmployer}</Text>
+              </>
+            )}
+            {user.employmentStatus.position && (
+              <>
+                <Text style={styles.sectionTitle}>{t('position')}</Text>
+                <Text style={styles.sectionText}>{user.employmentStatus.position}</Text>
+              </>
+            )}
+            {user.employmentStatus.employmentSince && (
+              <>
+                <Text style={styles.sectionTitle}>{t('since')}</Text>
+                <Text style={styles.sectionText}>
+                  {formatDate(user.employmentStatus.employmentSince)}
+                </Text>
+              </>
+            )}
           </View>
-          
-          {user.employmentStatus.details && (
-            <View style={styles.statusDetail}>
-              <Text style={styles.statusLabel}>Details:</Text>
-              <Text style={styles.statusValue}>{user.employmentStatus.details}</Text>
-            </View>
-          )}
-          
-          {user.employmentStatus.currentEmployer && (
-            <View style={styles.statusDetail}>
-              <Text style={styles.statusLabel}>Current Employer:</Text>
-              <Text style={styles.statusValue}>{user.employmentStatus.currentEmployer}</Text>
-            </View>
-          )}
-          
-          {user.employmentStatus.position && (
-            <View style={styles.statusDetail}>
-              <Text style={styles.statusLabel}>Position:</Text>
-              <Text style={styles.statusValue}>{user.employmentStatus.position}</Text>
-            </View>
-          )}
-          
-          {user.employmentStatus.employmentSince && (
-            <View style={styles.statusDetail}>
-              <Text style={styles.statusLabel}>Since:</Text>
-              <Text style={styles.statusValue}>{formatDate(user.employmentStatus.employmentSince)}</Text>
-            </View>
-          )}
-        </View>
+        </CollapsibleSection>
 
         {/* Contact Information */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Contact Information</Text>
-          
-          <TouchableOpacity 
-            style={styles.infoRow}
-            onPress={() => Linking.openURL(`mailto:${user.email}`)}
-          >
-            <Ionicons name="mail-outline" size={22} color="#008D97" style={styles.infoIcon} />
-            <View>
-              <Text style={styles.infoLabel}>Email</Text>
-              <Text style={styles.infoValue}>{user.email}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color="#999" />
-          </TouchableOpacity>
-
-          {user.phoneNumber && (
-            <TouchableOpacity 
-              style={styles.infoRow}
-              onPress={() => Linking.openURL(`tel:${user.phoneNumber}`)}
-            >
-              <Ionicons name="call-outline" size={22} color="#008D97" style={styles.infoIcon} />
-              <View>
-                <Text style={styles.infoLabel}>Phone</Text>
-                <Text style={styles.infoValue}>{user.phoneNumber}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#999" />
-            </TouchableOpacity>
-          )}
-
-          {user.address && (
-            <TouchableOpacity 
-              style={styles.infoRow}
-              onPress={() => Linking.openURL(`https://maps.google.com/?q=${encodeURIComponent(user.address || '')}`)}
-            >
-              <Ionicons name="location-outline" size={22} color="#008D97" style={styles.infoIcon} />
-              <View>
-                <Text style={styles.infoLabel}>Address</Text>
-                <Text style={styles.infoValue}>{user.address}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#999" />
-            </TouchableOpacity>
-          )}
-          
-          {user.linkedIn && (
-            <TouchableOpacity 
-              style={styles.infoRow}
-              onPress={() => Linking.openURL(user.linkedIn || '')}
-            >
-              <FontAwesome name="linkedin-square" size={22} color="#0077B5" style={styles.infoIcon} />
-              <View>
-                <Text style={styles.infoLabel}>LinkedIn</Text>
-                <Text style={styles.infoValue}>View Profile</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color="#999" />
-            </TouchableOpacity>
-          )}
-        </View>
+        <CollapsibleSection title={t('contactInfo')}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('email')}</Text>
+            <Text style={styles.sectionText}>{user.email}</Text>
+            {user.phoneNumber && (
+              <>
+                <Text style={styles.sectionTitle}>{t('phone')}</Text>
+                <Text style={styles.sectionText}>{user.phoneNumber}</Text>
+              </>
+            )}
+            {user.address && (
+              <>
+                <Text style={styles.sectionTitle}>{t('address')}</Text>
+                <Text style={styles.sectionText}>{user.address}</Text>
+              </>
+            )}
+          </View>
+        </CollapsibleSection>
         
         {/* Skills */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Skills</Text>
-          
+        <CollapsibleSection title={t('skills')}>
           <View style={styles.skillsContainer}>
             {user.skills.map((skill, index) => (
               <View key={index} style={styles.skillItem}>
                 <Text style={styles.skillName}>{skill.name}</Text>
-                <View style={styles.skillLevelContainer}>
-                  <View 
-                    style={[
-                      styles.skillLevel, 
-                      { 
-                        width: skill.level === 'beginner' ? '25%' : 
-                               skill.level === 'intermediate' ? '50%' : 
-                               skill.level === 'advanced' ? '75%' : '100%' 
-                      }
-                    ]} 
-                  />
-                </View>
-                <Text style={styles.skillLevelText}>
-                  {skill.level.charAt(0).toUpperCase() + skill.level.slice(1)}
-                </Text>
+                <Text style={styles.skillLevel}>{skill.level}</Text>
               </View>
             ))}
           </View>
-        </View>
+        </CollapsibleSection>
         
         {/* Education */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Education</Text>
-          
-          {user.education.map((edu, index) => (
-            <View key={index} style={[styles.educationItem, index < user.education.length - 1 && styles.withBottomBorder]}>
-              <View style={styles.educationHeader}>
-                <Text style={styles.degreeText}>
-                  {edu.degree} in {edu.field}
-                </Text>
-                <Text style={styles.graduationYear}>{edu.graduationYear}</Text>
+        <CollapsibleSection title={t('education')}>
+          <View style={styles.educationContainer}>
+            {user.education.map((edu, index) => (
+              <View key={index} style={styles.educationItem}>
+                <Text style={styles.educationInstitution}>{edu.institution}</Text>
+                <Text style={styles.educationDegree}>{edu.degree} in {edu.field}</Text>
+                <Text style={styles.educationYear}>{edu.graduationYear}</Text>
               </View>
-              <Text style={styles.institutionText}>{edu.institution}</Text>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        </CollapsibleSection>
         
         {/* Job Preferences */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Job Preferences</Text>
-          
-          {user.jobPreferences.desiredRole && (
-            <View style={styles.preferenceItem}>
-              <MaterialCommunityIcons name="briefcase-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
-              <Text style={styles.preferenceLabel}>Desired Role:</Text>
-              <Text style={styles.preferenceValue}>{user.jobPreferences.desiredRole}</Text>
-            </View>
-          )}
-          
-          {user.jobPreferences.desiredSalary && (
-            <View style={styles.preferenceItem}>
-              <MaterialCommunityIcons name="cash" size={20} color="#008D97" style={styles.preferenceIcon} />
-              <Text style={styles.preferenceLabel}>Desired Salary:</Text>
-              <Text style={styles.preferenceValue}>{user.jobPreferences.desiredSalary}</Text>
-            </View>
-          )}
-          
-          {user.jobPreferences.desiredLocation && (
-            <View style={styles.preferenceItem}>
-              <Ionicons name="location-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
-              <Text style={styles.preferenceLabel}>Preferred Location:</Text>
-              <Text style={styles.preferenceValue}>{user.jobPreferences.desiredLocation}</Text>
-            </View>
-          )}
-          
-          {user.jobPreferences.workType && (
-            <View style={styles.preferenceItem}>
-              <MaterialCommunityIcons name="office-building-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
-              <Text style={styles.preferenceLabel}>Work Type:</Text>
-              <Text style={styles.preferenceValue}>
-                {user.jobPreferences.workType.charAt(0).toUpperCase() + user.jobPreferences.workType.slice(1)}
-              </Text>
-            </View>
-          )}
-          
-          {user.jobPreferences.availableFrom && (
-            <View style={styles.preferenceItem}>
-              <Ionicons name="calendar-outline" size={20} color="#008D97" style={styles.preferenceIcon} />
-              <Text style={styles.preferenceLabel}>Available From:</Text>
-              <Text style={styles.preferenceValue}>{formatDate(user.jobPreferences.availableFrom)}</Text>
-            </View>
-          )}
-        </View>
+        <CollapsibleSection title={t('jobPreferences')}>
+          <View style={styles.preferenceContainer}>
+            {user.jobPreferences.desiredRole && (
+              <>
+                <Text style={styles.preferenceTitle}>{t('desiredRole')}</Text>
+                <Text style={styles.preferenceText}>{user.jobPreferences.desiredRole}</Text>
+              </>
+            )}
+            
+            {user.jobPreferences.desiredSalary && (
+              <>
+                <Text style={styles.preferenceTitle}>{t('desiredSalary')}</Text>
+                <Text style={styles.preferenceText}>{user.jobPreferences.desiredSalary}</Text>
+              </>
+            )}
+            
+            {user.jobPreferences.desiredLocation && (
+              <>
+                <Text style={styles.preferenceTitle}>{t('preferredLocation')}</Text>
+                <Text style={styles.preferenceText}>{user.jobPreferences.desiredLocation}</Text>
+              </>
+            )}
+            
+            {user.jobPreferences.workType && (
+              <>
+                <Text style={styles.preferenceTitle}>{t('workType')}</Text>
+                <Text style={styles.preferenceText}>{user.jobPreferences.workType}</Text>
+              </>
+            )}
+            
+            {user.jobPreferences.availableFrom && (
+              <>
+                <Text style={styles.preferenceTitle}>{t('availableFrom')}</Text>
+                <Text style={styles.preferenceText}>{formatDate(user.jobPreferences.availableFrom)}</Text>
+              </>
+            )}
+          </View>
+        </CollapsibleSection>
         
         {/* Languages */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Languages</Text>
-          
-          {user.languages.map((language, index) => (
-            <View key={index} style={[styles.languageItem, index < user.languages.length - 1 && styles.withBottomBorder]}>
-              <Text style={styles.languageName}>{language.name}</Text>
-              <View style={styles.levelBadge}>
-                <Text style={styles.levelBadgeText}>
-                  {language.level === 'native' ? 'Native' : language.level}
-                </Text>
+        <CollapsibleSection title={t('languages')}>
+          <View style={styles.languageContainer}>
+            {user.languages.map((lang, index) => (
+              <View key={index} style={styles.languageItem}>
+                <Text style={styles.languageName}>{lang.name}</Text>
+                <Text style={styles.languageLevel}>{lang.level}</Text>
               </View>
-            </View>
-          ))}
-        </View>
+            ))}
+          </View>
+        </CollapsibleSection>
+
+        {/* Favorited Jobs */}
+        <CollapsibleSection title={t('favoritedJobs')}>
+          <View style={styles.jobContainer}>
+            {user.favoritedJobs.length > 0 ? (
+              user.favoritedJobs.map((job) => (
+                <TouchableOpacity
+                  key={job.id}
+                  style={styles.jobItem}
+                  onPress={() => router.push(`/job/${job.id}`)}>
+                  <View style={styles.jobHeader}>
+                    <Text style={styles.jobTitle}>{job.title}</Text>
+                    <Text style={styles.jobDate}>{formatDate(job.dateAdded)}</Text>
+                  </View>
+                  <Text style={styles.jobCompany}>{job.company}</Text>
+                  <Text style={styles.jobLocation}>{job.location}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <View style={styles.emptyState}>
+                <Text style={styles.emptyStateText}>{t('noFavoritedJobs')}</Text>
+                <TouchableOpacity
+                  style={styles.browseButton}
+                  onPress={() => router.push('/jobs')}>
+                  <Text style={styles.browseButtonText}>{t('browseJobs')}</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </CollapsibleSection>
 
         {/* Account Settings */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Settings</Text>
-          
+        <CollapsibleSection title={t('accountSettings')}>
           <TouchableOpacity 
             style={styles.settingRow}
             onPress={() => router.push('/edit-profile')}
           >
             <Ionicons name="person-outline" size={22} color="#008D97" style={styles.settingIcon} />
-            <Text style={styles.settingText}>Edit Profile</Text>
+            <Text style={styles.settingText}>{t('editProfile')}</Text>
             <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
           
@@ -289,28 +258,28 @@ export default function ProfileScreen() {
             onPress={() => router.push('/(authenticated)/(tabs)/settings')}
           >
             <Ionicons name="settings-outline" size={22} color="#008D97" style={styles.settingIcon} />
-            <Text style={styles.settingText}>App Settings</Text>
+            <Text style={styles.settingText}>{t('appSettings')}</Text>
             <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingRow}>
             <Ionicons name="notifications-outline" size={22} color="#008D97" style={styles.settingIcon} />
-            <Text style={styles.settingText}>Notification Settings</Text>
+            <Text style={styles.settingText}>{t('notificationSettings')}</Text>
             <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingRow}>
             <Ionicons name="shield-checkmark-outline" size={22} color="#008D97" style={styles.settingIcon} />
-            <Text style={styles.settingText}>Privacy Settings</Text>
+            <Text style={styles.settingText}>{t('privacySettings')}</Text>
             <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.settingRow}>
             <Ionicons name="help-circle-outline" size={22} color="#008D97" style={styles.settingIcon} />
-            <Text style={styles.settingText}>Help & Support</Text>
+            <Text style={styles.settingText}>{t('helpAndSupport')}</Text>
             <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
-        </View>
+        </CollapsibleSection>
       </ScrollView>
     </SafeAreaView>
   );
@@ -389,58 +358,19 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   section: {
+    padding: 15,
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 16,
-  },
-  statusDetail: {
-    flexDirection: 'row',
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  statusLabel: {
-    fontSize: 14,
-    color: '#666',
-    flex: 1,
-  },
-  statusValue: {
-    fontSize: 14,
-    color: '#333',
-    flex: 1,
-    fontWeight: '500',
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-    paddingVertical: 12,
-  },
-  infoIcon: {
-    marginRight: 16,
-  },
-  infoLabel: {
-    fontSize: 14,
-    color: '#666',
-    flex: 1,
-  },
-  infoValue: {
     fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 5,
     color: '#333',
-    flex: 1,
+  },
+  sectionText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 10,
   },
   skillsContainer: {
     marginTop: 8,
@@ -454,97 +384,126 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 6,
   },
-  skillLevelContainer: {
-    height: 8,
-    backgroundColor: '#E9ECEF',
-    borderRadius: 4,
-    overflow: 'hidden',
-    marginBottom: 4,
-  },
   skillLevel: {
-    height: '100%',
-    backgroundColor: '#008D97',
-    borderRadius: 4,
-  },
-  skillLevelText: {
-    fontSize: 12,
+    fontSize: 14,
     color: '#666',
-    alignSelf: 'flex-end',
+    textTransform: 'capitalize',
+  },
+  educationContainer: {
+    marginTop: 8,
   },
   educationItem: {
-    paddingVertical: 12,
+    marginBottom: 15,
   },
-  withBottomBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  educationHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  degreeText: {
+  educationInstitution: {
     fontSize: 16,
     fontWeight: '600',
     color: '#333',
   },
-  graduationYear: {
+  educationDegree: {
     fontSize: 14,
     color: '#666',
   },
-  institutionText: {
+  educationYear: {
     fontSize: 14,
-    color: '#666',
+    color: '#999',
   },
-  preferenceItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+  preferenceContainer: {
+    marginTop: 8,
   },
-  preferenceIcon: {
-    marginRight: 12,
-  },
-  preferenceLabel: {
-    fontSize: 14,
-    color: '#666',
-    width: 140,
-  },
-  preferenceValue: {
-    fontSize: 14,
+  preferenceTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 5,
     color: '#333',
-    flex: 1,
-    fontWeight: '500',
+  },
+  preferenceText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 10,
+  },
+  languageContainer: {
+    marginTop: 8,
   },
   languageItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
   },
   languageName: {
     fontSize: 16,
     color: '#333',
   },
-  levelBadge: {
-    backgroundColor: '#E9F5F6',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+  languageLevel: {
+    fontSize: 14,
+    color: '#666',
+    textTransform: 'uppercase',
   },
-  levelBadgeText: {
-    color: '#008D97',
-    fontSize: 12,
+  jobContainer: {
+    marginTop: 8,
+  },
+  jobItem: {
+    backgroundColor: '#fff',
+    padding: 15,
+    marginBottom: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  jobHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  jobTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  jobDate: {
+    fontSize: 14,
+    color: '#666',
+  },
+  jobCompany: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+  },
+  jobLocation: {
+    fontSize: 14,
+    color: '#999',
+  },
+  emptyState: {
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyStateText: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 15,
+    textAlign: 'center',
+  },
+  browseButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  browseButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: '600',
   },
   settingRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#F0F0F0',
-    paddingVertical: 14,
   },
   settingIcon: {
     marginRight: 16,

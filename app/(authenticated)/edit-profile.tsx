@@ -2,19 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as Haptics from 'expo-haptics';
-import { router } from 'expo-router';
+import { router, useNavigation } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -62,6 +62,7 @@ interface LanguageItem {
 export default function EditProfileScreen() {
   const { user } = useAuth();
   const [isSaving, setIsSaving] = useState(false);
+  const navigation = useNavigation();
   
   // Form state
   const [formData, setFormData] = useState<User | null>(null);
@@ -79,7 +80,25 @@ export default function EditProfileScreen() {
     if (user) {
       setFormData({ ...user });
     }
-  }, [user]);
+
+    // Add save button to navigation header
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={saveProfile}
+          style={{
+            backgroundColor: primary.tealGreen,
+            paddingHorizontal: 16,
+            paddingVertical: 8,
+            borderRadius: 8,
+            marginRight: 8,
+          }}
+        >
+          <Text style={{ color: '#fff', fontWeight: '600' }}>Save</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [user, navigation]);
   
   if (!user || !formData) {
     return (
@@ -298,22 +317,6 @@ export default function EditProfileScreen() {
             <RecruitmentLoader size="large" text="Saving your profile..." />
           </View>
         ) : null}
-        
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <Ionicons name="arrow-back" size={24} color={primary.tealGreen} />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Edit Profile</Text>
-          <TouchableOpacity
-            style={styles.saveButton}
-            onPress={saveProfile}
-          >
-            <Text style={styles.saveButtonText}>Save</Text>
-          </TouchableOpacity>
-        </View>
         
         <ScrollView contentContainerStyle={styles.content}>
           {/* Profile Picture Section */}
@@ -725,34 +728,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5F8FA',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: neutral.cloudGray,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: neutral.charcoal,
-  },
-  backButton: {
-    padding: 4,
-  },
-  saveButton: {
-    backgroundColor: primary.tealGreen,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  saveButtonText: {
-    color: primary.white,
-    fontWeight: '600',
   },
   content: {
     padding: 16,

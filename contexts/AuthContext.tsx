@@ -40,6 +40,13 @@ export interface User {
     name: string;
     level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2' | 'native';
   }>;
+  favoritedJobs: Array<{
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    dateAdded: string;
+  }>;
 }
 
 // Define the AuthContext type
@@ -102,6 +109,22 @@ const dummyUser: User = {
     { name: 'English', level: 'C2' },
     { name: 'French', level: 'B1' },
     { name: 'German', level: 'A2' },
+  ],
+  favoritedJobs: [
+    {
+      id: '1',
+      title: 'Senior Frontend Developer',
+      company: 'TechCorp Belgium',
+      location: 'Ghent',
+      dateAdded: '2024-03-15',
+    },
+    {
+      id: '2',
+      title: 'Full Stack Developer',
+      company: 'Digital Solutions',
+      location: 'Brussels',
+      dateAdded: '2024-03-10',
+    },
   ],
 };
 

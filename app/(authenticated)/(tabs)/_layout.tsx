@@ -2,10 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Tabs, router } from 'expo-router';
 import React from 'react';
-import { Platform, StyleSheet, TouchableOpacity } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity } from 'react-native';
 
 import { primary } from '@/constants/Colors';
 import { useAuth } from '@/contexts/AuthContext';
+
+// Create a ref to store the save callback
+const saveSettingsCallbackRef = React.createRef<(() => void) | null>();
 
 export default function TabLayout() {
   const { logout } = useAuth();
@@ -106,6 +109,32 @@ export default function TabLayout() {
         options={{
           title: 'App Settings',
           headerTitle: 'App Settings',
+          headerLeft: () => (
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ marginLeft: 16 }}
+            >
+              <Ionicons name="arrow-back" size={24} color={primary.tealGreen} />
+            </TouchableOpacity>
+          ),
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => {
+                if (saveSettingsCallbackRef.current) {
+                  saveSettingsCallbackRef.current();
+                }
+              }}
+              style={{
+                backgroundColor: primary.tealGreen,
+                paddingHorizontal: 16,
+                paddingVertical: 8,
+                borderRadius: 8,
+                marginRight: 16,
+              }}
+            >
+              <Text style={{ color: '#fff', fontWeight: '600' }}>Save</Text>
+            </TouchableOpacity>
+          ),
           href: null, // This will hide the tab from the tab bar
         }}
       />

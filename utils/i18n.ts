@@ -40,6 +40,24 @@ export interface TranslationContent {
   skills: string;
   languages: string;
   jobPreferences: string;
+  userNotFound: string;
+  currentStatus: string;
+  details: string;
+  currentEmployer: string;
+  position: string;
+  since: string;
+  email: string;
+  phone: string;
+  address: string;
+  viewProfile: string;
+  favoritedJobs: string;
+  noFavoritedJobs: string;
+  browseJobs: string;
+  desiredRole: string;
+  desiredSalary: string;
+  preferredLocation: string;
+  workType: string;
+  availableFrom: string;
   
   // Settings
   settings: string;
@@ -55,6 +73,11 @@ export interface TranslationContent {
   large: string;
   currentTheme: string;
   adjustTextSize: string;
+  settingsSaved: string;
+  accountSettings: string;
+  notificationSettings: string;
+  privacySettings: string;
+  helpAndSupport: string;
   
   // Language & Region
   languageAndRegion: string;
@@ -126,6 +149,24 @@ export const translations: Record<LanguageCode, TranslationContent> = {
     skills: 'Skills',
     languages: 'Languages',
     jobPreferences: 'Job Preferences',
+    userNotFound: 'User not found',
+    currentStatus: 'Current Status',
+    details: 'Details',
+    currentEmployer: 'Current Employer',
+    position: 'Position',
+    since: 'Since',
+    email: 'Email',
+    phone: 'Phone',
+    address: 'Address',
+    viewProfile: 'View Profile',
+    favoritedJobs: 'Favorited Jobs',
+    noFavoritedJobs: 'No favorited jobs yet',
+    browseJobs: 'Browse Jobs',
+    desiredRole: 'Desired Role',
+    desiredSalary: 'Desired Salary',
+    preferredLocation: 'Preferred Location',
+    workType: 'Work Type',
+    availableFrom: 'Available From',
     
     // Settings
     settings: 'Settings',
@@ -141,6 +182,11 @@ export const translations: Record<LanguageCode, TranslationContent> = {
     large: 'Large',
     currentTheme: 'Current theme',
     adjustTextSize: 'Adjust text size throughout the app',
+    settingsSaved: 'Your settings have been saved successfully.',
+    accountSettings: 'Account Settings',
+    notificationSettings: 'Notification Settings',
+    privacySettings: 'Privacy Settings',
+    helpAndSupport: 'Help & Support',
     
     // Language & Region
     languageAndRegion: 'Language & Region',
@@ -207,6 +253,24 @@ export const translations: Record<LanguageCode, TranslationContent> = {
     skills: 'Yetenekler',
     languages: 'Diller',
     jobPreferences: 'İş Tercihleri',
+    userNotFound: 'Kullanıcı bulunamadı',
+    currentStatus: 'Mevcut Durum',
+    details: 'Detaylar',
+    currentEmployer: 'Mevcut İşveren',
+    position: 'Pozisyon',
+    since: 'Başlangıç',
+    email: 'E-posta',
+    phone: 'Telefon',
+    address: 'Adres',
+    viewProfile: 'Profili Görüntüle',
+    favoritedJobs: 'Favori İşler',
+    noFavoritedJobs: 'Henüz favori işiniz yok',
+    browseJobs: 'İşlere Göz At',
+    desiredRole: 'İstenen Rol',
+    desiredSalary: 'İstenen Maaş',
+    preferredLocation: 'Tercih Edilen Konum',
+    workType: 'Çalışma Tipi',
+    availableFrom: 'Müsait Olma Tarihi',
     
     // Settings
     settings: 'Ayarlar',
@@ -222,6 +286,11 @@ export const translations: Record<LanguageCode, TranslationContent> = {
     large: 'Büyük',
     currentTheme: 'Mevcut tema',
     adjustTextSize: 'Uygulama genelinde yazı boyutunu ayarlayın',
+    settingsSaved: 'Ayarlarınız başarıyla kaydedildi.',
+    accountSettings: 'Hesap Ayarları',
+    notificationSettings: 'Bildirim Ayarları',
+    privacySettings: 'Gizlilik Ayarları',
+    helpAndSupport: 'Yardım & Destek',
     
     // Language & Region
     languageAndRegion: 'Dil ve Bölge',
