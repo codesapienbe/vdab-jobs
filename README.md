@@ -1,136 +1,152 @@
-# 🚀 VDAB Jobs - The Awesome Job Finder App! 🔍
+# VDAB Jobs - Mobile Job Search Application
 
-Hey there, future job hunter! This is a SUPER COOL app that helps you find awesome jobs in Flanders using the VDAB (that's a big organization that helps people find work). Think of it like having a job-hunting superpower in your pocket! 📱✨
+A mobile application that interfaces with VDAB's job search services to help users find employment opportunities in Flanders, Belgium.
 
-## ⭐ What This App Can Do (It's Like Magic!)
+## About VDAB
 
-- **Find Jobs** 🕵️‍♂️: Type what job you want and BOOM! The app shows you all the coolest options
-- **Super Filters** 🧪: Pick exactly where you want to work and how far you want to travel (no more "But Mom, it's too faaaaar!")
-- **Sort Stuff** 📊: Want the newest jobs first? Or ones close to home? You got it!
-- **See All the Details** 📝: Check out everything about the job without having to ask a million questions
-- **Similar Jobs** 👯‍♂️: If you see a job you like, the app shows you more like it (kind of like when YouTube recommends videos)
+VDAB (Vlaamse Dienst voor Arbeidsbemiddeling en Beroepsopleiding) is the public employment service of Flanders, Belgium. It serves as a crucial intermediary between job seekers and employers, offering:
 
-## 🤖 Technical Superpowers (Fancy Stuff That Makes It Work)
+- Job matching services for unemployed and employed job seekers
+- Career guidance and vocational training programs
+- Labor market information and insights
+- Support for employers with recruitment and workforce development
+- Digital platforms for job searching and career development
 
-Our app has some AWESOME tech superpowers! It's like the Avengers of coding:
+VDAB maintains one of Belgium's largest job databases, with thousands of vacancies across various industries and skill levels. Through their OpenServices API, they provide access to this data to encourage innovation in employment services.
 
-- **React Native** 👾: Makes the app work on both iPhone AND Android (so you won't be the only one in class who can't use it)
-- **TypeScript** 🧙‍♂️: This is like spell-checking for code so the app doesn't explode
-- **React Query** 🧠: Remembers stuff so you don't have to keep waiting for things to load (sooo slooow)
-- **Axios** 🔒: Talks to job websites securely (no bad guys stealing your info!)
-- **Expo** 🎮: Makes building the app easier than building LEGO sets!
+## Application Features
 
-## 🚦 Getting Started (How to Make This Awesome Thing Work)
+- **Job Search**: Search for vacancies using keywords, job categories, and locations
+- **Advanced Filtering**: Filter results by location, distance, job domains, and more
+- **Customizable Sorting**: Order results by relevance, date, or distance
+- **Detailed Job Information**: View comprehensive vacancy details including requirements, qualifications, and salary information
+- **Similar Job Recommendations**: Discover similar positions based on your interests
 
-### What You Need First
-- A computer with Node.js (it's like the engine that makes code go vroom!)
-- Expo CLI (a magical tool that helps build apps)
-- A phone OR a pretend phone on your computer (called a simulator)
+## Technical Stack
 
-### Setting Everything Up
+This application is built using modern mobile development technologies:
 
-1. **Clone the project** (fancy way of saying "download it")
+- **React Native**: Cross-platform mobile framework
+- **TypeScript**: Statically typed JavaScript for improved reliability
+- **React Query**: Data synchronization and caching library
+- **Axios**: HTTP client for API requests
+- **Expo**: Development platform for React Native
+
+## Getting Started
+
+### Prerequisites
+- Node.js 16 or newer
+- Expo CLI (`npm install -g expo-cli`)
+- iOS Simulator or Android Emulator (optional for development)
+- VDAB API key (obtain from [VDAB OpenServices](https://www.vdab.be/open-services))
+
+### Installation
+
+1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/vdab-jobs.git
-cd vdab-jobs
+git clone https://github.com/yourusername/vdab-unofficial.git
+cd vdab-unofficial
 ```
 
-2. **Install all the parts** (like putting together a toy on Christmas morning)
+2. Install dependencies
 ```bash
 npm install
 ```
 
-3. **Make a secret file** called `.env` with your super-secret password (API key)
+3. Create environment configuration file `.env`
 ```
-EXPO_PUBLIC_VDAB_API_KEY=your_secret_code_here
+EXPO_PUBLIC_VDAB_API_KEY=your_api_key_here
 EXPO_PUBLIC_VDAB_BASE_URL=https://api.vdab.be/openservices
 ```
 
-4. **Start the app's engine!** 🏎️
+4. Start the development server
 ```bash
 npm start
 ```
 
-5. **Put it on your phone or the pretend phone**
+5. Launch on a device or simulator
 ```bash
 npm run ios
-# OR if you like green robot phones better
+# OR
 npm run android
 ```
 
-## 🗂️ How Everything is Organized (Like Your School Folders)
+## Project Structure
 
 ```
-├── app/                  # The main clubhouse where all screens hang out 
-│   ├── (tabs)/           # Screens you can tap at the bottom like tabs in your binder
-│   │   ├── search.tsx    # The super search page for finding jobs
-│   │   └── index.tsx     # The home page (where you first land)
-│   ├── vacancy/          # Rooms for each job's details
-│   │   └── [id].tsx      # Shows all the cool info about ONE job
-│   └── _layout.tsx       # The blueprint that puts everything together
-├── components/           # Our LEGO pieces that we use to build screens
-│   ├── VacancyListItem   # The little job cards you see in a list
-│   ├── SkeletonPlaceholder # Those flashing things when stuff is loading
-│   ├── ThemedButton      # Fancy buttons in our app colors
-│   ├── GradientButton    # SUPER fancy buttons with rainbowy colors
-│   └── ThemedCard        # Pretty containers for information
-├── constants/            # Things that NEVER change (like how many minutes in an hour)
-│   ├── Colors.ts         # All our awesome colors (like teal green and bright blue!)
-│   └── Config.ts         # Secret stuff the app needs to know
-├── hooks/                # Special magic tricks our app can do
-│   ├── useVacancies.ts   # Gets all the job info from the internet
-│   ├── useJobDomains.ts  # Finds what types of jobs exist
-│   └── useAppTheme.ts    # Changes colors if it's day or night mode
-├── services/             # How we talk to the job database
-│   ├── api/              # Our telephone to call VDAB
-│   │   ├── api.service.ts      # The main telephone
-│   │   ├── vacancy.service.ts  # For calling about jobs
-│   │   └── jobDomain.service.ts # For calling about job types
-│   └── types/            # Instructions for what job info looks like
-├── contexts/             # Special info every part of the app can see
-│   └── ThemeContext.tsx  # Tells EVERYTHING what colors to use
-└── assets/               # Cool pictures, fonts, and sounds
-    ├── images/           # All the pretty pictures
-    └── fonts/            # Different text styles
+├── app/                  # Main application screens and navigation
+│   ├── (tabs)/           # Tab-based navigation screens
+│   │   ├── search.tsx    # Job search interface
+│   │   └── index.tsx     # Home/landing page
+│   ├── vacancy/          # Vacancy-related screens
+│   │   └── [id].tsx      # Individual vacancy details
+│   ├── (authenticated)/  # Screens requiring authentication
+│   │   └── job-detail.tsx # Detailed job view for authenticated users
+│   └── _layout.tsx       # Navigation and layout configuration
+├── components/           # Reusable UI components
+├── constants/            # Application constants and configuration
+├── contexts/             # React contexts for state management
+├── hooks/                # Custom React hooks
+│   ├── useVacancies.ts   # Vacancy data fetching and management
+│   ├── useJobDomains.ts  # Job category data management
+├── services/             # API and data services
+│   ├── api/              # API client and endpoints
+│   │   ├── api.service.ts      # Core API client
+│   │   ├── vacancy.service.ts  # Vacancy-specific endpoints
+│   │   └── jobDomain.service.ts # Job category endpoints
+│   └── types/            # TypeScript type definitions
+└── assets/               # Static assets (images, fonts)
 ```
 
-Think of our app like a GIANT treehouse with different rooms and secret passages! Each folder is like a room with special tools to do cool things. When they all work together - BOOM! - you get an awesome job hunting app! 🧙‍♂️🔮
+## Building for Production
 
-## 🏗️ Building the App For Real
+This project uses EAS (Expo Application Services) for building production-ready applications.
 
-This uses something called "EAS" which is like having a robot assistant build your app for you! 🤖
-
-### Make a Version for Testing
+### Development Build
 ```bash
 eas build --profile development --platform ios
 ```
 
-### Make the REAL Version
+### Production Build
 ```bash
 eas build --profile production --platform all
 ```
 
-### Put it in the App Stores (So Your Friends Can Download It)
+### App Store Submission
 ```bash
 eas submit --platform ios
 eas submit --platform android
 ```
 
-## 🔐 Super Secure Stuff
+## Security Features
 
-Our app has special protection like:
-- **Certificate Pinning** 📌: Makes sure bad websites can't trick the app
-- **Secure Storage** 🔑: Keeps your secrets safe like a digital Fort Knox
-- **Rate Limiting** 🚦: Stops the app from asking too many questions too fast
-- **Request Validation** 🧐: Makes sure the app only asks smart questions
+This application implements several security measures:
 
-## 👏 Special Thanks
+- **API Authentication**: Secure communication with VDAB services
+- **Secure Storage**: Protected storage of sensitive information
+- **Rate Limiting**: Prevention of API abuse
+- **Request Validation**: Data validation before transmission
+- **Certificate Pinning**: Protection against network attacks
 
-- VDAB for sharing their job info with us
-- The Expo team for making cool tools (without them, this would be WAAAY harder)
-- YOU for using our app! You're the real MVP! 🏆
+## VDAB API Integration
+
+This application interacts with the VDAB OpenServices API, which provides:
+
+- Comprehensive job listings across Flanders
+- Job categorization by industry and function
+- Location-based search capabilities
+- Job detail information including requirements and benefits
+- Similar job recommendation functionality
+
+To use the VDAB API, organizations must register for access at the [VDAB Developer Portal](https://www.vdab.be/open-services). The API provides both JSON and XML formats and requires authentication for access.
+
+## Acknowledgments
+
+- VDAB for providing access to their employment data
+- The Expo and React Native teams for their excellent development tools
+- Contributors who have helped improve this application
 
 ---
 
-If you find bugs 🐛 (not real bugs, but when something breaks), let us know! 
+For issues, feature requests, or contributions, please open an issue on this repository.
 

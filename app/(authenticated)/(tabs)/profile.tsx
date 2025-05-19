@@ -1,4 +1,5 @@
 import { FontAwesome, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
   Image,
@@ -25,6 +26,7 @@ const formatDate = (dateString: string) => {
 
 export default function ProfileScreen() {
   const { user } = useAuth();
+  const router = useRouter();
 
   if (!user) {
     return (
@@ -273,9 +275,21 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Settings</Text>
           
-          <TouchableOpacity style={styles.settingRow}>
-            <Ionicons name="settings-outline" size={22} color="#008D97" style={styles.settingIcon} />
+          <TouchableOpacity 
+            style={styles.settingRow}
+            onPress={() => router.push('/edit-profile')}
+          >
+            <Ionicons name="person-outline" size={22} color="#008D97" style={styles.settingIcon} />
             <Text style={styles.settingText}>Edit Profile</Text>
+            <Ionicons name="chevron-forward" size={18} color="#999" />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.settingRow}
+            onPress={() => router.push('/(authenticated)/(tabs)/settings')}
+          >
+            <Ionicons name="settings-outline" size={22} color="#008D97" style={styles.settingIcon} />
+            <Text style={styles.settingText}>App Settings</Text>
             <Ionicons name="chevron-forward" size={18} color="#999" />
           </TouchableOpacity>
           

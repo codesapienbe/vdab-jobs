@@ -10,6 +10,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { SettingsProvider } from '../contexts/SettingsContext';
 import { ThemeProvider } from '../contexts/ThemeContext';
 
 export {
@@ -104,24 +105,26 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ThemeProvider>
-          <NavigationThemeProvider value={theme}>
-            <Stack 
-              screenOptions={{
-                headerShown: false,
-                headerBackTitle: '', // Remove back button text
-                headerTintColor: '#008D97', // Use teal color for back button
-              }}>
-              <Stack.Screen name="index" />
-              <Stack.Screen name="login" />
-              <Stack.Screen name="(authenticated)" />
-              <Stack.Screen name="search" />
-              <Stack.Screen name="+not-found" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
-            <StatusBar style="auto" />
-          </NavigationThemeProvider>
-        </ThemeProvider>
+        <SettingsProvider>
+          <ThemeProvider>
+            <NavigationThemeProvider value={theme}>
+              <Stack 
+                screenOptions={{
+                  headerShown: false,
+                  headerBackTitle: '', // Remove back button text
+                  headerTintColor: '#008D97', // Use teal color for back button
+                }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="login" />
+                <Stack.Screen name="(authenticated)" />
+                <Stack.Screen name="search" />
+                <Stack.Screen name="+not-found" />
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+              <StatusBar style="auto" />
+            </NavigationThemeProvider>
+          </ThemeProvider>
+        </SettingsProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

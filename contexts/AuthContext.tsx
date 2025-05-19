@@ -54,9 +54,9 @@ interface AuthContextType {
 // Create the dummy user
 const dummyUser: User = {
   id: '1',
-  username: 'demo',
-  name: 'Demo User',
-  email: 'demo@example.com',
+  username: 'csbe',
+  name: 'Abuzittin Kodyazar',
+  email: 'dev@mail.be',
   phoneNumber: '+32 123 456 789',
   address: 'Korenmarkt 1, 9000 Gent',
   profilePicture: 'https://randomuser.me/api/portraits/lego/1.jpg',
@@ -64,11 +64,11 @@ const dummyUser: User = {
   employmentStatus: {
     status: 'employed',
     details: 'Working as a senior developer',
-    currentEmployer: 'TechSolutions NV',
+    currentEmployer: 'CodeSapiens',
     position: 'Senior Full Stack Developer',
     employmentSince: '2021-06-15',
   },
-  linkedIn: 'https://linkedin.com/in/demouser',
+  linkedIn: 'https://linkedin.com/in/codesapienbe',
   skills: [
     { name: 'JavaScript', level: 'expert' },
     { name: 'React', level: 'advanced' },
